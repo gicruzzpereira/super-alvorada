@@ -1,2 +1,50 @@
-# super-alvorada
-O site do Supermercado ALVORADA é uma plataforma de e-commerce responsiva (desktop e mobile) desenvolvida para oferecer uma experiência de compra acolhedora, ágil e prática para famílias e moradores urbanos dentro de um raio de entrega de até 10 km.
+# Supermercado Alvorada
+
+Aplicação didática de comércio eletrônico e operação de mercado, construída em PHP 8+, MySQL, HTML, CSS e JavaScript sem frameworks.
+
+## Instalação com XAMPP ou WAMP
+
+1. Copie a pasta do projeto para `htdocs/supermercado-alvorada` (XAMPP) ou `www/supermercado-alvorada` (WAMP).
+2. Inicie Apache e MySQL no painel local.
+3. Abra phpMyAdmin, importe `schema.sql` e confirme a criação de `supermercado_alvorada`.
+4. Confira `config/conexao.php`. O padrão local é host `127.0.0.1`, usuário `root`, senha vazia. Ajuste para a sua instalação.
+5. Acesse `http://localhost/supermercado-alvorada/`.
+
+Se instalou em subpasta, configure o VirtualHost para apontar o document root para a raiz do projeto (os links usam caminhos absolutos a partir do document root). Para criar contas internas, cadastre um usuário cliente pelo formulário e altere seu `perfil` somente pelo banco, ou crie as contas de separação e entrega pelo painel de administração.
+
+## Perfis de teste
+
+Opcionalmente, execute `php seed_demo.php` no terminal do XAMPP/WAMP para criar contas locais de demonstração. O script só aceita execução CLI e salva as senhas usando `password_hash`.
+
+| Perfil | E-mail | Senha |
+|---|---|---|
+| Visitante (conta de referência) | visitante@alvorada.local | Visitante123! |
+| Cliente | cliente@alvorada.local | Cliente123! |
+| Administrador | admin@alvorada.local | Admin123! |
+| Separador | separador@alvorada.local | Separador123! |
+| Entregador | entregador@alvorada.local | Entrega123! |
+
+Visitante navega sem login; a conta de referência só existe para validar o perfil ENUM. Troque ou remova essas credenciais antes de qualquer publicação.
+
+## Fluxos para validação manual
+
+- Catálogo: busca, abas de categorias, detalhes e adição por unidade ou peso.
+- Cliente: criar conta, incluir endereço na área de CEP de demonstração, montar carrinho, concluir compra, acompanhar pedido, cancelar pedido pendente e consultar PIN.
+- Separação: iniciar pedido, registrar quantidade pesada ou falta e liberar para entrega.
+- Entrega: assumir pedido pronto, abrir rota, registrar ocorrência ou confirmar com PIN do cliente.
+- Administração: criar e editar produtos, criar usuários operacionais, configurar frete e intervalo de CEP, consultar pedidos e auditoria.
+
+## Observações de configuração
+
+O intervalo de CEP inicial é demonstrativo (01000-000 a 04999-999), não representa cálculo geográfico real de raio. Configure os limites e o frete no painel. A imagem padrão usa Unsplash e requer conexão. Para uma publicação real, configure HTTPS, credenciais de banco fora do repositório, política de backup, logs e provedores de pagamento/entrega.
+
+## Contas de teste Alvorada
+
+A base `supermercado_alvorada` foi inicializada com `schema.sql`. As contas de teste padrão podem ser recriadas pelo terminal com `php seed_test_accounts.php`:
+
+| Perfil | E-mail | Senha |
+|---|---|---|
+| Cliente | cliente@superalvorada.com | Cliente123! |
+| Administrador | admin@superalvorada.com | Admin123! |
+
+Os cadastros da loja e as contas adicionadas pelo painel administrativo são salvos automaticamente na tabela `usuarios`. O painel permite criar contas de cliente, administrador, separador, entregador e visitante.
