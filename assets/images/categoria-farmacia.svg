@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 420" role="img" aria-label="Farmácia Popular">
+  <rect x="43" y="18" width="274" height="235" rx="48" fill="#22a546"/>
+  <rect x="79" y="42" width="202" height="202" rx="30" fill="#ffdc24" transform="rotate(45 180 143)"/>
+  <circle cx="180" cy="143" r="79" fill="#344da8"/>
+  <path d="M111 158 248 105" fill="none" stroke="#43b6e8" stroke-width="17" stroke-linecap="round"/>
+  <text x="180" y="320" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="48" font-weight="900" letter-spacing="1.5" fill="#fffdf8" stroke="#e98b98" stroke-width="2" paint-order="stroke">FARMÁCIA</text>
+  <text x="180" y="382" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="54" font-weight="900" letter-spacing="1" fill="#fffdf8" stroke="#e98b98" stroke-width="2" paint-order="stroke">POPULAR</text>
+</svg>
