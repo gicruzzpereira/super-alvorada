@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__.'/../config/conexao.php';
 $erro='';
-$returnTo=(($_POST['return_to']??$_GET['voltar']??'')==='checkout')?'checkout':'';
+$returnTarget=(string)($_POST['return_to']??$_GET['voltar']??'');
+$returnTo=in_array($returnTarget,['checkout','cupons'],true)?$returnTarget:'';
 if($_SERVER['REQUEST_METHOD']==='POST'){
     validarCsrf();
     $nome=trim($_POST['nome']??'');
@@ -14,7 +15,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             $q=db()->prepare("INSERT INTO usuarios(nome,email,senha,perfil,telefone) VALUES(?,?,?,'cliente',?)");
             $q->execute([$nome,$email,password_hash($senha,PASSWORD_DEFAULT),trim($_POST['telefone']??'')]);
             $_SESSION['usuario']=['id_usuario'=>(int)db()->lastInsertId(),'nome'=>$nome,'email'=>$email,'perfil'=>'cliente'];
-            header('Location: '.($returnTo==='checkout'?'/cliente/checkout.php':'/cliente/perfil.php'));
+            header('Location: '.($returnTo==='checkout'?'/cliente/checkout.php':($returnTo==='cupons'?'../cupons.php':'/cliente/perfil.php')));
             exit;
         }catch(PDOException $e){
             $erro=$e->getCode()==='23000'?'Este e-mail já está cadastrado.':'Não foi possível criar a conta.';
@@ -28,7 +29,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Criar conta · Alvorada</title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=44">
+    <link rel="stylesheet" href="../assets/css/style.css?v=50">
 </head>
 <body class="auth-body">
 <main class="auth-shell auth-shell-register">
@@ -40,7 +41,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             <h1 id="register-title">Crie sua <span>conta</span></h1>
             <p>Cadastre-se no Supermercado Alvorada para começar suas compras e ter acesso a descontos exclusivos.</p>
         </header>
-        <?php if($returnTo==='checkout'): ?><div class="notice">Crie sua conta para continuar e finalizar o pedido.</div><?php endif; ?>
+        <?php if($returnTo==='checkout'): ?><div class="notice">Crie sua conta para continuar e finalizar o pedido.</div><?php elseif($returnTo==='cupons'):?><div class="notice">Crie sua conta para resgatar e salvar seus cupons.</div><?php endif; ?>
         <?php if($erro): ?><div class="notice" role="alert"><?=h($erro)?></div><?php endif; ?>
         <form method="post" class="auth-form">
             <input type="hidden" name="csrf" value="<?=csrf()?>">
@@ -64,7 +65,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             </label>
             <button class="auth-submit" type="submit">Criar conta <span aria-hidden="true">→</span></button>
         </form>
-        <p class="auth-switch">Já tem uma conta? <a href="login.php<?= $returnTo==='checkout'?'?voltar=checkout':'' ?>">Entrar</a></p>
+        <p class="auth-switch">Já tem uma conta? <a href="login.php<?= $returnTo?'?voltar='.rawurlencode($returnTo):'' ?>">Entrar</a></p>
     </section>
 </main>
 <script src="../assets/js/main.js?v=7"></script>

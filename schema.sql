@@ -5,7 +5,7 @@ SET FOREIGN_KEY_CHECKS=1;
 CREATE TABLE usuarios(id_usuario INT AUTO_INCREMENT PRIMARY KEY,nome VARCHAR(100) NOT NULL,email VARCHAR(100) NOT NULL UNIQUE,senha VARCHAR(255) NOT NULL,perfil ENUM('visitante','cliente','admin','separador','entregador') NOT NULL DEFAULT 'cliente',telefone VARCHAR(20),foto_perfil VARCHAR(255) NULL,data_nascimento DATE NULL,data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB;
 CREATE TABLE enderecos(id_endereco INT AUTO_INCREMENT PRIMARY KEY,id_usuario INT NOT NULL,logradouro VARCHAR(150) NOT NULL,numero VARCHAR(20) NOT NULL,bairro VARCHAR(80) NOT NULL,cidade VARCHAR(80) NOT NULL,cep VARCHAR(10) NOT NULL,atendido TINYINT(1) DEFAULT 1,FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE) ENGINE=InnoDB;
 CREATE TABLE categorias(id_categoria INT AUTO_INCREMENT PRIMARY KEY,nome VARCHAR(50) NOT NULL,slug VARCHAR(50) NOT NULL UNIQUE,imagem_url VARCHAR(255) NULL) ENGINE=InnoDB;
-CREATE TABLE produtos(id_produto INT AUTO_INCREMENT PRIMARY KEY,id_categoria INT NOT NULL,nome VARCHAR(100) NOT NULL,tipo_medida ENUM('UN','KG') NOT NULL DEFAULT 'UN',preco_unitario DECIMAL(10,2) NOT NULL,estoque_qtd DECIMAL(10,3) NOT NULL,imagem_url VARCHAR(255),destaque TINYINT(1) DEFAULT 0,ativo TINYINT(1) DEFAULT 1,FOREIGN KEY(id_categoria) REFERENCES categorias(id_categoria)) ENGINE=InnoDB;
+CREATE TABLE produtos(id_produto INT AUTO_INCREMENT PRIMARY KEY,id_categoria INT NOT NULL,nome VARCHAR(100) NOT NULL,descricao VARCHAR(255) NULL,tipo_medida ENUM('UN','KG') NOT NULL DEFAULT 'UN',preco_unitario DECIMAL(10,2) NOT NULL,estoque_qtd DECIMAL(10,3) NOT NULL,imagem_url VARCHAR(255),destaque TINYINT(1) DEFAULT 0,ativo TINYINT(1) DEFAULT 1,FOREIGN KEY(id_categoria) REFERENCES categorias(id_categoria)) ENGINE=InnoDB;
 CREATE TABLE cupons(id_cupom INT AUTO_INCREMENT PRIMARY KEY,codigo VARCHAR(40) NOT NULL UNIQUE,titulo VARCHAR(100) NOT NULL,descricao VARCHAR(255) NULL,tipo ENUM('percentual','fixo') NOT NULL,valor DECIMAL(10,2) NOT NULL,pedido_minimo DECIMAL(10,2) NOT NULL DEFAULT 0,validade DATE NULL,limite_usos INT NULL,usos INT NOT NULL DEFAULT 0,ativo TINYINT(1) NOT NULL DEFAULT 1,data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB;
 CREATE TABLE pedidos(id_pedido INT AUTO_INCREMENT PRIMARY KEY,id_cliente INT NOT NULL,id_separador INT NULL,id_entregador INT NULL,id_endereco INT NULL,id_cupom INT NULL,valor_desconto DECIMAL(10,2) NOT NULL DEFAULT 0,status ENUM('pendente','em_separacao','aguardando_aprovacao','pronto','em_transito','entregue','cancelado','problema') DEFAULT 'pendente',valor_subtotal DECIMAL(10,2) NOT NULL,valor_frete DECIMAL(10,2) NOT NULL DEFAULT 5.00,valor_total DECIMAL(10,2) NOT NULL,metodo_pagamento ENUM('pix','cartao_credito','dinheiro_entrega') NOT NULL,modalidade_entrega ENUM('expressa','agendada','retirada') NOT NULL DEFAULT 'agendada',cep_entrega VARCHAR(9) NULL,data_entrega DATE NULL,horario_entrega VARCHAR(40) NULL,pin_entrega VARCHAR(6) NOT NULL UNIQUE,observacao_separacao TEXT,observacao_problema TEXT,data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(id_cliente) REFERENCES usuarios(id_usuario),FOREIGN KEY(id_separador) REFERENCES usuarios(id_usuario),FOREIGN KEY(id_entregador) REFERENCES usuarios(id_usuario),FOREIGN KEY(id_endereco) REFERENCES enderecos(id_endereco),FOREIGN KEY(id_cupom) REFERENCES cupons(id_cupom)) ENGINE=InnoDB;
 CREATE TABLE cupons_clientes(id_cupom_cliente INT AUTO_INCREMENT PRIMARY KEY,id_usuario INT NOT NULL,id_cupom INT NOT NULL,id_pedido INT NULL,resgatado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,usado_em TIMESTAMP NULL,UNIQUE KEY uk_cupom_cliente(id_usuario,id_cupom),FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE,FOREIGN KEY(id_cupom) REFERENCES cupons(id_cupom) ON DELETE CASCADE,FOREIGN KEY(id_pedido) REFERENCES pedidos(id_pedido) ON DELETE SET NULL) ENGINE=InnoDB;
@@ -15,7 +15,45 @@ CREATE TABLE configuracoes(chave VARCHAR(60) PRIMARY KEY,valor VARCHAR(255) NOT 
 CREATE TABLE auditoria(id_auditoria BIGINT AUTO_INCREMENT PRIMARY KEY,id_usuario INT NULL,id_pedido INT NULL,acao VARCHAR(100) NOT NULL,detalhes TEXT,criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario) ON DELETE SET NULL,FOREIGN KEY(id_pedido) REFERENCES pedidos(id_pedido) ON DELETE SET NULL) ENGINE=InnoDB;
 INSERT INTO categorias(nome,slug) VALUES ('Hortifrúti','hortifruti'),('Padaria','padaria'),('Açougue','acougue'),('Bebidas','bebidas'),('Limpeza','limpeza'),('Farmácia','farmacia'),('Pets','pets'),('Peixaria','peixaria'),('Frios & Laticínios','frios-laticinios'),('Mercearia & Grãos','mercearia-graos'),('Higiene & Perfumaria','higiene-perfumaria'),('Jornal da Semana','jornal');
 INSERT INTO produtos(id_categoria,nome,tipo_medida,preco_unitario,estoque_qtd,imagem_url,destaque) VALUES
-(1,'Banana prata','KG',7.99,80,'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=700&q=80',1),(1,'Tomate italiano','KG',8.49,60,NULL,1),(1,'Alface crespa','UN',3.50,40,NULL,0),(2,'Pão francês','KG',16.90,50,NULL,1),(2,'Pão de forma','UN',8.90,35,NULL,0),(3,'Peito de frango','KG',19.90,45,NULL,1),(3,'Carne moída','KG',32.90,40,NULL,0),(4,'Suco de laranja 1L','UN',9.50,30,NULL,1),(4,'Água mineral 1,5L','UN',3.25,100,NULL,0),(5,'Detergente neutro','UN',2.79,70,NULL,0),(5,'Sabão em pó 1kg','UN',12.90,32,NULL,1),(6,'Creme dental','UN',5.99,50,NULL,0),(7,'Ração para cães 1kg','UN',18.90,22,NULL,1);
+(1,'Banana prata','KG',7.99,80,'/assets/images/produto-hortifruti-banana-prata.jpg',1),(1,'Tomate italiano','KG',8.49,60,NULL,1),(1,'Alface crespa','UN',3.50,40,NULL,0),(2,'Pão francês','KG',16.90,50,NULL,1),(2,'Pão de forma','UN',8.90,35,NULL,0),(3,'Peito de frango','KG',19.90,45,NULL,1),(3,'Carne moída','KG',32.90,40,NULL,0),(4,'Suco de laranja 1L','UN',9.50,30,NULL,1),(4,'Água mineral 1,5L','UN',3.25,100,NULL,0),(5,'Detergente neutro','UN',2.79,70,NULL,0),(5,'Sabão em pó 1kg','UN',12.90,32,NULL,1),(6,'Creme dental','UN',5.99,50,NULL,0),(7,'Ração para cães 1kg','UN',18.90,22,NULL,1);
+INSERT INTO produtos(id_categoria,nome,tipo_medida,preco_unitario,estoque_qtd,imagem_url,destaque) VALUES
+(1,'Maçã Fuji','KG',8.90,40,'/assets/images/produto-hortifruti-maca-fuji.jpg',0),
+(1,'Laranja Pera','KG',4.79,50,'/assets/images/produto-hortifruti-laranja-pera.jpg',0),
+(1,'Uva Thompson','KG',11.90,30,'/assets/images/produto-hortifruti-uva-thompson.jpg',0),
+(1,'Mamão Papaya','UN',6.49,25,'/assets/images/produto-hortifruti-mamao-papaya.jpg',0),
+(1,'Abacaxi Pérola','UN',7.50,20,'/assets/images/produto-hortifruti-abacaxi-perola.jpg',0),
+(1,'Morango 250g','UN',9.90,24,'/assets/images/produto-hortifruti-morango.jpg',0),
+(1,'Limão Taiti','KG',5.90,35,'/assets/images/produto-hortifruti-limao-taiti.jpg',0),
+(1,'Batata Inglesa','KG',5.49,60,'/assets/images/produto-hortifruti-batata-inglesa.jpg',0),
+(1,'Cenoura','KG',5.50,45,'/assets/images/produto-hortifruti-cenoura.jpg',0),
+(1,'Brócolis Ninja','UN',6.90,22,'/assets/images/produto-hortifruti-brocolis.jpg',0),
+(1,'Cebola Nacional','KG',4.29,50,'/assets/images/produto-hortifruti-cebola.jpg',0),
+(1,'Pepino Japonês','KG',7.90,25,'/assets/images/produto-hortifruti-pepino-japones.jpg',0),
+(1,'Pimentão Verde','KG',8.90,24,'/assets/images/produto-hortifruti-pimentao-verde.jpg',0),
+(1,'Manga Palmer','KG',7.49,28,'/assets/images/produto-hortifruti-manga-palmer.jpg',0),
+(1,'Alface Americana','UN',3.49,30,'/assets/images/produto-hortifruti-alface-americana.jpg',0);
+UPDATE produtos SET imagem_url='/assets/images/produto-hortifruti-tomate-italiano.jpg' WHERE id_categoria=1 AND nome='Tomate italiano';
+UPDATE produtos SET imagem_url='/assets/images/produto-hortifruti-alface-crespa.jpg' WHERE id_categoria=1 AND nome='Alface crespa';
+UPDATE produtos p JOIN categorias c USING(id_categoria) SET p.descricao=CASE p.nome
+  WHEN 'Banana prata' THEN 'Doce e macia, ótima para lanches e vitaminas.'
+  WHEN 'Tomate italiano' THEN 'Tomates maduros e suculentos para saladas e molhos.'
+  WHEN 'Alface crespa' THEN 'Folhas frescas e crocantes para saladas.'
+  WHEN 'Maçã Fuji' THEN 'Maçã firme e suculenta, perfeita para comer a qualquer hora.'
+  WHEN 'Laranja Pera' THEN 'Laranja doce e aromática, ideal para sucos naturais.'
+  WHEN 'Uva Thompson' THEN 'Uvas verdes sem sementes, leves e refrescantes.'
+  WHEN 'Mamão Papaya' THEN 'Mamão de polpa macia e sabor suave para o café da manhã.'
+  WHEN 'Abacaxi Pérola' THEN 'Abacaxi doce e perfumado para servir ou preparar sucos.'
+  WHEN 'Morango 250g' THEN 'Morangos selecionados, frescos e cheios de sabor.'
+  WHEN 'Limão Taiti' THEN 'Limão fresco para temperos, bebidas e receitas.'
+  WHEN 'Batata Inglesa' THEN 'Batatas versáteis para assar, cozinhar ou preparar purês.'
+  WHEN 'Cenoura' THEN 'Cenouras frescas e crocantes para saladas e pratos quentes.'
+  WHEN 'Brócolis Ninja' THEN 'Brócolis compacto e fresco, ótimo no vapor ou refogado.'
+  WHEN 'Cebola Nacional' THEN 'Cebolas selecionadas para dar sabor às suas receitas.'
+  WHEN 'Pepino Japonês' THEN 'Pepino fresco e crocante para saladas e conservas.'
+  WHEN 'Pimentão Verde' THEN 'Pimentão verde fresco para saladas, refogados e recheios.'
+  WHEN 'Manga Palmer' THEN 'Manga Palmer de polpa macia e sabor adocicado.'
+  WHEN 'Alface Americana' THEN 'Alface de folhas firmes e crocantes para sanduíches e saladas.'
+  ELSE p.descricao END WHERE c.slug='hortifruti';
 INSERT INTO configuracoes(chave,valor) VALUES('frete_padrao','5.00'),('loja_latitude','-23.55052'),('loja_longitude','-46.63331'),('agendamento_dias','1,2,3,4,5,6'),('agendamento_horarios','09:00-12:00
 14:00-18:00'),('entrega_horarios','09:00-10:00
 10:00-11:00
@@ -116,7 +154,8 @@ INSERT INTO banners_site(titulo,texto_alternativo,imagem_url,categoria_slug,link
 ('Dia do pão','Pães, bolos e salgados com ótimos preços','/assets/images/banner-dia-do-pao.jpg?v=1','padaria','#produtos',4,1),
 ('Ofertas de churrasco','Ofertas para você acender a brasa; melhores cortes','/assets/images/banner-churrasco.jpg?v=1','acougue','#produtos',5,1),
 ('Saldão de ração','Saldão de ração para pets com até 50% de desconto','/assets/images/banner-saldao-pet.jpg?v=1','pets','#produtos',6,1),
-('Preço baixo','Preço baixo no Supermercado Alvorada','/assets/images/banner-preco-baixo.jpg?v=1','mercearia-graos','#produtos',7,1)
+('Preço baixo','Preço baixo no Supermercado Alvorada','/assets/images/banner-preco-baixo.jpg?v=1','mercearia-graos','#produtos',7,1),
+('Cupons diários','Banner de cupons diários do Supermercado Alvorada. Acesse a página de cupons e resgate descontos.','/assets/images/banner-cupons-diarios.jpg','todos','/cupons.php',8,1)
 ON DUPLICATE KEY UPDATE titulo=VALUES(titulo),texto_alternativo=VALUES(texto_alternativo),imagem_url=VALUES(imagem_url),categoria_slug=VALUES(categoria_slug),link_url=VALUES(link_url),ordem=VALUES(ordem),ativo=VALUES(ativo);
 
 INSERT INTO promocoes_site(slug,tipo,etiqueta,titulo,chamada,imagem_url,categoria_slug,ordem,ativo) VALUES

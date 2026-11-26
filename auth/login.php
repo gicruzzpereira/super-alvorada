@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__.'/../config/conexao.php';
 $erro='';
-$returnTo=(($_POST['return_to']??$_GET['voltar']??'')==='checkout')?'checkout':'';
+$returnTarget=(string)($_POST['return_to']??$_GET['voltar']??'');
+$returnTo=in_array($returnTarget,['checkout','cupons'],true)?$returnTarget:'';
 if($_SERVER['REQUEST_METHOD']==='POST'){
     validarCsrf();
     $q=db()->prepare('SELECT id_usuario,nome,email,senha,perfil FROM usuarios WHERE email=?');
@@ -13,6 +14,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $_SESSION['usuario']=$u;
         if($returnTo==='checkout'&&$u['perfil']==='cliente'){
             header('Location: /cliente/checkout.php');
+            exit;
+        }
+        if($returnTo==='cupons'&&$u['perfil']==='cliente'){
+            header('Location: ../cupons.php');
             exit;
         }
         header('Location: '.(['admin'=>'/admin/painel.php','separador'=>'/separacao/painel.php','entregador'=>'/entrega/painel.php','cliente'=>'/cliente/perfil.php'][$u['perfil']]??'/'));
@@ -27,7 +32,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Entrar · Alvorada</title>
-    <link rel="stylesheet" href="../assets/css/style.css?v=44">
+    <link rel="stylesheet" href="../assets/css/style.css?v=50">
 </head>
 <body class="auth-body">
 <main class="auth-shell auth-shell-login">
@@ -36,7 +41,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     </a>
     <section class="auth-card" aria-labelledby="login-title">
         <h1 id="login-title">Bem-vindo de volta</h1>
-        <?php if($returnTo==='checkout'): ?><div class="notice">Entre na sua conta para continuar e finalizar o pedido.</div><?php endif; ?>
+        <?php if($returnTo==='checkout'): ?><div class="notice">Entre na sua conta para continuar e finalizar o pedido.</div><?php elseif($returnTo==='cupons'):?><div class="notice">Entre na sua conta para resgatar e salvar seus cupons.</div><?php endif; ?>
         <?php if($erro): ?><div class="notice" role="alert"><?=h($erro)?></div><?php endif; ?>
         <form method="post" class="auth-form">
             <input type="hidden" name="csrf" value="<?=csrf()?>">
@@ -54,7 +59,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
             </label>
             <button class="auth-submit" type="submit">Entrar</button>
         </form>
-        <p class="auth-switch">É sua primeira visita? <a href="cadastro.php<?= $returnTo==='checkout'?'?voltar=checkout':'' ?>">Crie sua conta</a></p>
+        <p class="auth-switch">É sua primeira visita? <a href="cadastro.php<?= $returnTo?'?voltar='.rawurlencode($returnTo):'' ?>">Crie sua conta</a></p>
     </section>
 </main>
 <script src="../assets/js/main.js?v=7"></script>

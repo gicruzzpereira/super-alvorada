@@ -60,3 +60,11 @@ C:\xampp\php\php.exe migrations\run_009.php
 
 A migração é compatível com instalações que já têm categorias cadastradas e preserva os registros atuais. A interface, folhas de estilo, código e arquivos binários das imagens permanecem no projeto; dados de perfil e pedidos continuam nas tabelas relacionais.
 Carrinhos, favoritos e localização também são sincronizados com o banco: para clientes vinculados à conta e para visitantes por sessão (dados temporários expiram em 30 dias). O painel administrativo ganhou a página `admin/conteudo.php` para editar banners, cartões promocionais, ofertas do encarte e textos armazenados.
+
+## Envio de e-mail da newsletter
+
+A inscrição salva o e-mail no MySQL e envia uma mensagem de boas-vindas com link para as ofertas por SMTP. A configuração local usa Gmail (`smtp.gmail.com`, porta `465`, SSL). Preencha `ALVORADA_SMTP_USERNAME` com o endereço Gmail e `ALVORADA_SMTP_PASSWORD` com uma senha de app; o remetente pode ser o mesmo Gmail. Para links válidos fora desta máquina, configure `ALVORADA_SITE_URL` com o endereço público do site.
+
+No Google, ative a verificação em duas etapas e gere uma senha de app para o site. O arquivo `.env.local` já está preparado nesta máquina e ignorado pelo Git. Não envie a senha de app pelo chat nem a publique no repositório.
+
+Sem essas configurações, o site ainda salva a inscrição, mas informa que o e-mail não pôde ser enviado. Configure SMTP no Apache/PHP antes de prometer envio real aos clientes.

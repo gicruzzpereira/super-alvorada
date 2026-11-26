@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__.'/../config/conexao.php';
 require_once __DIR__.'/../config/entrega.php';
+require_once __DIR__.'/../config/email.php';
 
 $user=$_SESSION['usuario']??null;
 $loggedIn=($user['perfil']??'')==='cliente';
@@ -72,9 +73,15 @@ if($_SERVER['REQUEST_METHOD']==='POST'&&isset($_POST['newsletter_signup'])){
         $pdo->exec('CREATE TABLE IF NOT EXISTS newsletter_inscritos (id_inscrito INT AUTO_INCREMENT PRIMARY KEY,email VARCHAR(190) NOT NULL UNIQUE,ativo TINYINT(1) NOT NULL DEFAULT 1,consentido_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
         $newsletter=$pdo->prepare('INSERT INTO newsletter_inscritos(email) VALUES(?) ON DUPLICATE KEY UPDATE ativo=1');
         $newsletter->execute([$email]);
-        $_SESSION['newsletter_message']='Inscrição confirmada. Você receberá novidades e ofertas do Alvorada.';
+        try{
+            enviarEmailNewsletter($email);
+            $_SESSION['newsletter_message']='Inscrição confirmada. Enviamos um e-mail de boas-vindas com o link para acessar as ofertas.';
+        }catch(Throwable $mailError){
+            error_log('Newsletter email delivery failed: '.$mailError->getMessage());
+            $_SESSION['newsletter_message']='Seu e-mail foi salvo, mas o envio ainda não está configurado. A equipe precisa configurar o serviço de e-mail.';
+        }
     }catch(Throwable $e){$_SESSION['newsletter_message']='Não foi possível concluir sua inscrição agora. Tente novamente.';}
-    header('Location: /cliente/carrinho.php#newsletter');
+    header('Location: '.((($_POST['newsletter_return']??'')==='home')?'/#newsletter':'/cliente/carrinho.php#newsletter'));
     exit;
 }
 
@@ -90,7 +97,7 @@ $csrfToken=csrf();
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Carrinho de Compras | Supermercado Alvorada</title>
-    <link rel="stylesheet" href="/assets/css/style.css?v=44">
+    <link rel="stylesheet" href="/assets/css/style.css?v=50">
 </head>
 <body class="cart-page">
 <div class="topbar">
@@ -100,21 +107,26 @@ $csrfToken=csrf();
             <form class="search cart-search" action="/" method="get"><input name="q" placeholder="Buscar produtos, marcas e mais..." aria-label="Buscar produtos"><button class="search-button" aria-label="Buscar">⌕</button></form>
             <a class="head-action address" href="/" aria-label="Entrega para São Paulo"><span class="pin">♥</span><span><small>Entregar para</small><strong>São Paulo</strong></span></a>
             <a class="icon-link cart-header-favorites" href="/#produtos" aria-label="Ver produtos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg></a>
+            <a class="icon-link coupon-header-link" href="../cupons.php" aria-label="Cupons disponíveis" title="Cupons disponíveis"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 0 6.5 5h11A2.5 2.5 0 0 0 20 7.5v2a2.5 2.5 0 0 0 0 5v2a2.5 2.5 0 0 0-2.5 2.5h-11A2.5 2.5 0 0 0 4 16.5v-2a2.5 2.5 0 0 0 0-5z"/><path d="m9 14 6-6M9 8h.01M15 14h.01"/></svg></a>
             <a class="icon-link cart-header-account" href="<?=$loggedIn?'/cliente/perfil.php':'/auth/login.php'?>" aria-label="<?=$loggedIn?h($user['nome']??'Minha conta'):'Entrar ou cadastrar'?>"><svg class="person-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg><span class="account-trigger-label"><?=$loggedIn?h($user['nome']??'Minha conta'):'Entrar / Cadastrar'?></span></a>
             <a class="icon-link cart-header-cart" href="/cliente/carrinho.php" aria-label="Abrir carrinho de compras"><svg class="cart-icon" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><path d="M4 6h3l3.2 14.4a2 2 0 0 0 2 1.6h10.2a2 2 0 0 0 1.9-1.4L28 11H9"/><path d="M11 15h14M12 19h12"/><circle cx="13" cy="26" r="1.7"/><circle cx="23" cy="26" r="1.7"/></svg><span data-cart-count>0</span></a>
         </header>
     </div>
-    <div class="category-bar cart-category-bar"><nav class="container nav" aria-label="Categorias"><button class="category-menu-toggle cart-all-categories" type="button" data-cart-category-toggle aria-expanded="false" aria-controls="cart-category-menu"><b>☰</b> Todas as Categorias <span aria-hidden="true">⌄</span></button><div class="category-marquee"><div class="category-marquee-track"><div class="category-marquee-set"><?php foreach($categories as $category):if($category['slug']==='jornal')continue;?><a href="/#produtos" data-cart-category="<?=h($category['slug'])?>"><?=h($category['nome'])?></a><?php endforeach;?></div><div class="category-marquee-set" aria-hidden="true"><?php foreach($categories as $category):if($category['slug']==='jornal')continue;?><a href="/#produtos" tabindex="-1" data-cart-category="<?=h($category['slug'])?>"><?=h($category['nome'])?></a><?php endforeach;?></div></div></div></nav>
+    <div class="category-bar cart-category-bar"><nav class="container nav" aria-label="Categorias"><button class="category-menu-toggle cart-all-categories" type="button" data-cart-category-toggle aria-expanded="false" aria-controls="cart-category-menu"><b>☰</b> Todas as Categorias <span aria-hidden="true">⌄</span></button><div class="category-marquee"><div class="category-marquee-track"><div class="category-marquee-set"><?php foreach($categories as $category):?><a href="../categoria.php?slug=<?=rawurlencode($category['slug'])?>" data-cart-category="<?=h($category['slug'])?>"><?=h($category['nome'])?></a><?php endforeach;?></div><div class="category-marquee-set" aria-hidden="true"><?php foreach($categories as $category):?><a href="../categoria.php?slug=<?=rawurlencode($category['slug'])?>" tabindex="-1" data-cart-category="<?=h($category['slug'])?>"><?=h($category['nome'])?></a><?php endforeach;?></div></div></div></nav>
         <div class="category-mega-menu container" id="cart-category-menu" hidden>
-            <a class="category-mega-link" href="/?categoria=ofertas#ofertas"><strong>Ofertas do Dia</strong><span>Destaques promocionais da semana e combos especiais.</span></a>
-            <a class="category-mega-link" href="/?categoria=hortifruti#produtos"><strong>Hortifrúti &amp; Orgânicos</strong><span>Frutas, legumes, verduras, temperos verdes e ovos caipiras.</span></a>
-            <a class="category-mega-link" href="/?categoria=padaria#produtos"><strong>Padaria &amp; Confeitaria</strong><span>Pães artesanais, bolos, salgados assados, biscoitos e torradas.</span></a>
-            <a class="category-mega-link" href="/?categoria=acougue,peixaria#produtos"><strong>Açougue &amp; Peixaria</strong><span>Carnes, aves, linguiças, itens para churrasco e filés de peixe.</span></a>
-            <a class="category-mega-link" href="/?categoria=frios-laticinios#produtos"><strong>Frios &amp; Laticínios</strong><span>Queijos, presuntos, requeijão, leites, iogurtes e manteigas.</span></a>
-            <a class="category-mega-link" href="/?categoria=mercearia-graos#produtos"><strong>Mercearia &amp; Grãos</strong><span>Arroz, feijão, massas, farinhas, cafés, óleos, molhos e enlatados.</span></a>
-            <a class="category-mega-link" href="/?categoria=bebidas#produtos"><strong>Bebidas</strong><span>Sucos, águas, refrigerantes, chás gelados e cervejas.</span></a>
-            <a class="category-mega-link" href="/?categoria=limpeza#produtos"><strong>Limpeza &amp; Utilidades</strong><span>Produtos de limpeza, esponjas, sacos de lixo e utilidades.</span></a>
-            <a class="category-mega-link" href="/?categoria=higiene-perfumaria#produtos"><strong>Higiene &amp; Perfumaria</strong><span>Sabonetes, shampoos, creme dental, desodorantes e papel higiênico.</span></a>
+            <a class="category-mega-link" href="../categoria.php?slug=ofertas"><strong>Ofertas do Dia</strong><span>Destaques promocionais da semana e combos especiais.</span></a>
+            <a class="category-mega-link" href="../categoria.php?slug=hortifruti"><strong>Hortifrúti &amp; Orgânicos</strong><span>Frutas, legumes, verduras, temperos verdes e ovos caipiras.</span></a>
+            <a class="category-mega-link" href="../categoria.php?slug=padaria"><strong>Padaria &amp; Confeitaria</strong><span>Pães artesanais, bolos, salgados assados, biscoitos e torradas.</span></a>
+            <a class="category-mega-link" href="../categoria.php?slug=acougue-peixaria"><strong>Açougue &amp; Peixaria</strong><span>Carnes, aves, linguiças, itens para churrasco e filés de peixe.</span></a>
+            <a class="category-mega-link" href="../categoria.php?slug=frios-laticinios"><strong>Frios &amp; Laticínios</strong><span>Queijos, presuntos, requeijão, leites, iogurtes e manteigas.</span></a>
+            <a class="category-mega-link" href="../categoria.php?slug=mercearia-graos"><strong>Mercearia &amp; Grãos</strong><span>Arroz, feijão, massas, farinhas, cafés, óleos, molhos e enlatados.</span></a>
+            <a class="category-mega-link" href="../categoria.php?slug=bebidas"><strong>Bebidas</strong><span>Sucos, águas, refrigerantes, chás gelados e cervejas.</span></a>
+            <a class="category-mega-link" href="../categoria.php?slug=limpeza"><strong>Limpeza &amp; Utilidades</strong><span>Produtos de limpeza, esponjas, sacos de lixo e utilidades.</span></a>
+            <a class="category-mega-link" href="../categoria.php?slug=higiene-perfumaria"><strong>Higiene &amp; Perfumaria</strong><span>Sabonetes, shampoos, creme dental, desodorantes e papel higiênico.</span></a>
+<a class="category-mega-link" href="../categoria.php?slug=farmacia"><strong>Farmácia / Drogaria</strong><span>Medicamentos e itens essenciais de cuidado e bem-estar.</span></a>
+<a class="category-mega-link" href="../categoria.php?slug=pets"><strong>Pets</strong><span>Alimentos e cuidados para os companheiros da sua casa.</span></a>
+<a class="category-mega-link" href="../categoria.php?slug=peixaria"><strong>Peixaria</strong><span>Peixes e frutos do mar frescos para suas receitas.</span></a>
+<a class="category-mega-link" href="../categoria.php?slug=jornal"><strong>Jornal da Semana</strong><span>Veja o encarte e as ofertas da semana.</span></a>
         </div>
     </div>
 </div>
@@ -277,7 +289,7 @@ function renderCart(){
         const lineTotal=Number(product.preco_unitario)*quantity;
         subtotal+=lineTotal;totalItems+=quantity;
         const row=document.createElement('article');row.className='cart-product-row';
-        const image=document.createElement('img');image.className='cart-product-image';image.src=product.imagem_url||'/assets/images/produto-placeholder.png';image.alt=product.nome;image.loading='lazy';image.onerror=()=>{image.onerror=null;image.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=160&q=75';};
+        const normalizedName=String(product.nome||item.name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const flyerPhotoMap=[['cuscuz',77,290,130],['leite po integral',296,289,120],['acucar cristal',520,288,125],['biscoito agua e sal',80,448,128],['cafe torrado e moido',312,449,108],['arroz branco',519,448,122],['multiuso limpeza',82,605,118],['papel higienico',292,606,132],['lava-roupas liquido',519,603,126],['pao frances',80,768,131],['leite condensado',294,768,133],['feijao carioca',520,765,127]];const flyerPhoto=flyerPhotoMap.find(([match])=>normalizedName.includes(match));let image;if(flyerPhoto){image=document.createElement('span');image.className='cart-product-image cart-product-image-flyer';image.setAttribute('role','img');image.setAttribute('aria-label',product.nome);image.style.backgroundImage="url('/assets/images/encarte-ofertas-do-dia.webp?v=1')";image.style.backgroundSize=`${(765/flyerPhoto[3])*100}% auto`;image.style.backgroundPosition=`${(flyerPhoto[1]/(765-flyerPhoto[3]))*100}% ${(flyerPhoto[2]/(1024-flyerPhoto[3]))*100}%`;}else{image=document.createElement('img');image.className='cart-product-image';image.src=product.imagem_url||'/assets/images/produto-placeholder.png';image.alt=product.nome;image.loading='lazy';image.onerror=()=>{image.onerror=null;image.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=160&q=75';};}
         const details=document.createElement('div');details.className='cart-product-details';
         const name=document.createElement('strong');name.textContent=product.nome;
         const unit=document.createElement('small');unit.textContent=product.tipo_medida==='KG'?'Vendido por kg':'Unidade';

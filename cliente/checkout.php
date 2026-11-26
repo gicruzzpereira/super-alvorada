@@ -125,7 +125,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Checkout e pagamento · Alvorada</title>
-    <link rel="stylesheet" href="/assets/css/style.css?v=44">
+    <link rel="stylesheet" href="/assets/css/style.css?v=50">
 </head>
 <body>
 <main class="container checkout-page">

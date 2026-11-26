@@ -46,3 +46,4 @@ $footerAddressesUrl = $footerRole === 'cliente' ? '/cliente/perfil.php#enderecos
         </div>
     </div>
 </footer>
+<script src="/assets/js/motion.js?v=1" defer></script>

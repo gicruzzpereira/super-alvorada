@@ -98,7 +98,7 @@ $countOrders=count($orders);$countApprovals=count($approvals);$countAddresses=co
 function profileDate(?string $date):string{return $date?date('d/m/Y',strtotime($date)):'—';}
 ?>
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Meu perfil · Alvorada</title><link rel="stylesheet" href="/assets/css/style.css?v=44"></head>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Meu perfil · Alvorada</title><link rel="stylesheet" href="/assets/css/style.css?v=50"></head>
 <body class="profile-body">
 <div class="profile-app">
     <aside class="profile-sidebar">

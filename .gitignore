@@ -4,3 +4,4 @@
 !/storage/tmp/.gitkeep
 /assets/uploads/perfil/*
 *.log
+/.env.local
