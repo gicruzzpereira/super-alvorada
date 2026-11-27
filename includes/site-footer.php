@@ -1,6 +1,5 @@
 <?php
-$footerUser = $_SESSION['usuario'] ?? null;
-$footerRole = $footerUser['perfil'] ?? '';
+$footerRole = $_SESSION['usuario']['perfil'] ?? '';
 $footerRoutes = [
     'admin' => '/admin/painel.php',
     'separador' => '/separacao/painel.php',
@@ -8,42 +7,82 @@ $footerRoutes = [
     'cliente' => '/cliente/perfil.php',
 ];
 $footerAccountUrl = $footerRoutes[$footerRole] ?? '/auth/login.php';
-$footerAccountLabel = $footerRole === 'cliente' ? 'Meu perfil' : ($footerRole ? 'Painel da equipe' : 'Entrar / Cadastrar');
-$footerOrdersUrl = $footerRole === 'cliente' ? '/cliente/perfil.php#pedidos' : ($footerRoutes[$footerRole] ?? '/auth/login.php');
-$footerOrdersLabel = $footerRole === 'cliente' ? 'Meus pedidos' : ($footerRole ? 'Painel de pedidos' : 'Acompanhar pedidos');
-$footerAddressesUrl = $footerRole === 'cliente' ? '/cliente/perfil.php#enderecos' : ($footerRole ? $footerAccountUrl : '/auth/login.php');
+$footerOrdersUrl = match ($footerRole) {
+    'cliente' => '/cliente/pedidos.php',
+    '' => '/auth/login.php?voltar=pedidos',
+    default => $footerRoutes[$footerRole] ?? '/auth/login.php?voltar=pedidos',
+};
+$footerColumns = [
+    'Links Rápidos' => [
+        'Início' => '/',
+        'Categorias' => '/categoria.php?slug=todos',
+        'Ofertas do Dia' => '/categoria.php?slug=ofertas',
+        'Jornal da Semana' => '/categoria.php?slug=jornal',
+        'Contato' => '/informacoes.php?pagina=contato',
+    ],
+    'Atendimento' => [
+        'Minha Conta' => $footerAccountUrl,
+        'Rastrear Pedido' => $footerOrdersUrl,
+        'Entrega em até 50 km' => '/informacoes.php?pagina=entrega',
+        'Trocas e Devoluções' => '/informacoes.php?pagina=trocas',
+        'Perguntas Frequentes' => '/informacoes.php?pagina=perguntas-frequentes',
+    ],
+    'Informações' => [
+        'Política de Privacidade' => '/informacoes.php?pagina=privacidade',
+        'Termos e Condições' => '/informacoes.php?pagina=termos',
+        'Política de Reembolso' => '/informacoes.php?pagina=reembolso',
+        'Trabalhe Conosco' => '/informacoes.php?pagina=trabalhe-conosco',
+    ],
+];
+$footerPayments = [
+    'Pix' => ['pix', 'pix'],
+    'Visa' => ['cartoes', 'visa'],
+    'Mastercard' => ['cartoes', 'mastercard'],
+    'Elo' => ['cartoes', 'elo'],
+    'Boleto' => ['boleto', 'boleto'],
+    'Na entrega' => ['na-entrega', 'entrega'],
+];
 ?>
-<footer class="footer cart-footer site-footer">
+<link rel="stylesheet" href="/assets/css/site-footer.css?v=3">
+<footer class="site-footer">
     <div class="container">
-        <div class="cart-footer-grid">
-            <div class="cart-footer-brand">
-                <a class="brand" href="/" aria-label="Alvorada Supermercado">
-                    <img class="brand-logo" src="/assets/images/alvorada-logo-rodape.png?v=1" alt="Supermercado Alvorada">
-                </a>
-                <p>Qualidade, frescor e economia para o seu dia a dia.</p>
-            </div>
-            <div>
-                <h2>Loja</h2>
-                <a href="/#categorias">Categorias</a>
-                <a href="/#ofertas">Ofertas do dia</a>
-                <a href="/#ofertas">Ver encarte</a>
-            </div>
-            <div>
-                <h2>Minha conta</h2>
-                <a href="<?=h($footerAccountUrl)?>"><?=h($footerAccountLabel)?></a>
-                <a href="<?=h($footerOrdersUrl)?>"><?=h($footerOrdersLabel)?></a>
-                <a href="<?=h($footerAddressesUrl)?>">Endereços salvos</a>
-            </div>
-            <div>
-                <h2>Atendimento</h2>
-                <p>Precisa de ajuda com seu pedido?</p>
-                <a href="https://wa.me/5511987147839" target="_blank" rel="noopener noreferrer">Fale com a equipe Alvorada</a>
-            </div>
+        <div class="site-footer-columns">
+            <a class="site-footer-brand" href="/">
+                <img src="/assets/images/alvorada-logo-rodape.png?v=1" alt="Supermercado Alvorada">
+            </a>
+            <?php foreach ($footerColumns as $heading => $links): ?>
+                <nav aria-label="<?=h($heading)?>">
+                    <h2><?=h($heading)?></h2>
+                    <ul>
+                        <?php foreach ($links as $label => $url): ?>
+                            <li><a href="<?=h($url)?>"><?=h($label)?></a></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </nav>
+            <?php endforeach; ?>
+            <section class="site-footer-payment" aria-labelledby="site-footer-payment-title">
+                <h2 id="site-footer-payment-title">Formas de Pagamento</h2>
+                <ul class="site-footer-payment-grid">
+                    <?php foreach ($footerPayments as $label => [$anchor, $icon]): ?>
+                        <li>
+                            <a href="/informacoes.php?pagina=pagamentos#<?=h($anchor)?>" aria-label="<?=h($label)?>">
+                                <svg viewBox="0 0 72 38" aria-hidden="true" focusable="false"><use href="/assets/images/footer-payments.svg#<?=h($icon)?>"></use></svg>
+                            </a>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+                <p>Consulte a disponibilidade de cada opção.</p>
+                <div class="site-footer-support">
+                    <a href="/informacoes.php?pagina=privacidade">Privacidade da compra</a>
+                    <a href="/informacoes.php?pagina=trocas">Suporte à compra</a>
+                </div>
+            </section>
         </div>
-        <div class="cart-footer-bottom">
+        <div class="site-footer-bottom">
             <span>© <?=date('Y')?> Supermercado Alvorada</span>
-            <a href="/">Voltar à loja</a>
+            <?php if (!empty($showFooterFavorites)) require __DIR__.'/favorites-button.php'; ?>
         </div>
     </div>
 </footer>
+<?php if (!empty($showFooterFavorites)) require __DIR__.'/favorites-dialog.php'; ?>
 <script src="/assets/js/motion.js?v=1" defer></script>

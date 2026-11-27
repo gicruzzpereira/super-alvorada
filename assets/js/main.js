@@ -1,9 +1,9 @@
 window.AlvoradaCustomerState=(()=>{
  const token=()=>document.querySelector('meta[name="customer-state-csrf"]')?.content||'';
  const read=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
- const payload=()=>({cart:read('alvorada-cart')||[],favorites:read('alvorada-favorites')||[],location:read('alvorada-delivery-location')});
- const sync=()=>{const csrf=token();if(!csrf)return Promise.resolve(false);return fetch('/api/cliente_estado.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify(payload())}).then(r=>r.ok).catch(()=>false);};
- const hydrate=async()=>{const csrf=token();if(!csrf)return;try{const response=await fetch('/api/cliente_estado.php',{credentials:'same-origin'});if(!response.ok)return;const data=await response.json();if(!data.state){sync();return;}const state=data.state;if(Array.isArray(state.cart))localStorage.setItem('alvorada-cart',JSON.stringify(state.cart));if(Array.isArray(state.favorites))localStorage.setItem('alvorada-favorites',JSON.stringify(state.favorites));if(state.location)localStorage.setItem('alvorada-delivery-location',JSON.stringify(state.location));const itemCount=(state.cart||[]).reduce((sum,item)=>sum+(Number(item.qty)||0),0);document.querySelectorAll('[data-cart-count]').forEach(badge=>badge.textContent=itemCount.toLocaleString('pt-BR'));window.dispatchEvent(new Event('alvorada-customer-state-loaded'));}catch{}};
+ const payload=()=>({cart:read('alvorada-cart')||[],location:read('alvorada-delivery-location')});
+ const sync=(includeFavorites=false)=>{const csrf=token();if(!csrf)return Promise.resolve(false);return fetch('/api/cliente_estado.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify(includeFavorites?{...payload(),favorites:read('alvorada-favorites')||[]}:payload())}).then(r=>r.ok).catch(()=>false);};
+ const hydrate=async()=>{const csrf=token();if(!csrf)return;const initialFavorites=localStorage.getItem('alvorada-favorites');try{const response=await fetch('/api/cliente_estado.php',{credentials:'same-origin'});if(!response.ok)return;const data=await response.json();if(!data.state){sync(localStorage.getItem('alvorada-favorites')===initialFavorites);return;}const state=data.state;if(Array.isArray(state.cart))localStorage.setItem('alvorada-cart',JSON.stringify(state.cart));if(Array.isArray(state.favorites)&&localStorage.getItem('alvorada-favorites')===initialFavorites)localStorage.setItem('alvorada-favorites',JSON.stringify(state.favorites));if(state.location)localStorage.setItem('alvorada-delivery-location',JSON.stringify(state.location));const itemCount=(state.cart||[]).reduce((sum,item)=>sum+(Number(item.qty)||0),0);document.querySelectorAll('[data-cart-count]').forEach(badge=>badge.textContent=itemCount.toLocaleString('pt-BR'));window.dispatchEvent(new Event('alvorada-customer-state-loaded'));}catch{}};
  return {sync,hydrate};
 })();
 document.addEventListener('DOMContentLoaded',()=>window.AlvoradaCustomerState?.hydrate());
@@ -172,106 +172,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   dialog.close();
  });
  dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
-});
-
-document.addEventListener('DOMContentLoaded',()=>{
- const storageKey='alvorada-favorites';
- const dialog=document.querySelector('#favorites-dialog');
- const openButton=document.querySelector('[data-favorites-open]');
- const list=document.querySelector('[data-favorites-list]');
- const empty=document.querySelector('[data-favorites-empty]');
- const count=document.querySelector('[data-favorites-count]');
- if(!dialog||!openButton||!list||!empty||!count)return;
- const read=()=>{
-  try{
-   const value=JSON.parse(localStorage.getItem(storageKey)||'[]');
-   return Array.isArray(value)?[...new Set(value.map(Number).filter(Number.isInteger))]:[];
-  }catch{return [];}
- };
- const save=items=>{try{localStorage.setItem(storageKey,JSON.stringify(items));window.AlvoradaCustomerState?.sync();}catch{}};
- const productCards=()=>[...document.querySelectorAll('.product[data-id]')];
- productCards().forEach(card=>{
-  if(card.querySelector('[data-favorite-toggle]'))return;
-  const button=document.createElement('button');
-  button.type='button';
-  button.className='favorite-toggle';
-  button.dataset.favoriteToggle=card.dataset.id;
-  button.setAttribute('aria-pressed','false');
-  button.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg>';
-  card.append(button);
- });
- const render=()=>{
-  const ids=read().filter(id=>productCards().some(card=>Number(card.dataset.id)===id));
-  count.textContent=String(ids.length);
-  count.hidden=ids.length===0;
-  productCards().forEach(card=>{
-   const button=card.querySelector('[data-favorite-toggle]');
-   if(!button)return;
-   const liked=ids.includes(Number(card.dataset.id));
-   button.classList.toggle('is-liked',liked);
-   button.setAttribute('aria-pressed',String(liked));
-   button.setAttribute('aria-label',`${liked?'Remover dos curtidos':'Curtir'}: ${card.dataset.name||'produto'}`);
-  });
-  list.replaceChildren();
-  empty.hidden=ids.length>0;
-  ids.forEach(id=>{
-   const card=productCards().find(item=>Number(item.dataset.id)===id);
-   if(!card)return;
-   const row=document.createElement('div');
-   row.className='favorite-item';
-   const name=document.createElement('span');
-   name.className='favorite-item-name';
-   name.textContent=card.dataset.name||'Produto';
-   const view=document.createElement('button');
-   view.type='button';
-   view.className='favorite-view';
-   view.dataset.favoriteView=String(id);
-   view.textContent='Ver produto';
-   const remove=document.createElement('button');
-   remove.type='button';
-   remove.className='favorite-remove';
-   remove.dataset.favoriteRemove=String(id);
-   remove.setAttribute('aria-label',`Remover ${card.dataset.name||'produto'} dos curtidos`);
-   remove.textContent='Remover';
-   row.append(name,view,remove);
-   list.append(row);
-  });
- };
- document.addEventListener('click',event=>{
-  const button=event.target.closest('[data-favorite-toggle]');
-  if(!button)return;
-  const id=Number(button.dataset.favoriteToggle);
-  const ids=read();
-  save(ids.includes(id)?ids.filter(item=>item!==id):[...ids,id]);
-  render();
- });
- list.addEventListener('click',event=>{
-  const remove=event.target.closest('[data-favorite-remove]');
-  if(remove){
-   const id=Number(remove.dataset.favoriteRemove);
-   save(read().filter(item=>item!==id));
-   render();
-   return;
-  }
-  const view=event.target.closest('[data-favorite-view]');
-  if(view){
-   const id=Number(view.dataset.favoriteView);
-   dialog.close();
-   window.setTimeout(()=>{
-    const cards=productCards().filter(card=>Number(card.dataset.id)===id);
-    const target=cards.find(card=>!card.closest('.product-section')?.hidden)||cards[0];
-    if(!target)return;
-    const section=target.closest('.product-section');
-    if(section)section.hidden=false;
-    target.scrollIntoView({behavior:'smooth',block:'center'});
-   },80);
-  }
- });
- openButton.addEventListener('click',()=>{render();dialog.showModal();});
- dialog.querySelectorAll('[data-favorites-close]').forEach(button=>button.addEventListener('click',()=>dialog.close()));
- dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
- render();
- window.addEventListener('alvorada-customer-state-loaded',render);
 });
 
 document.addEventListener('DOMContentLoaded',()=>{

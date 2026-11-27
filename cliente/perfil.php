@@ -98,7 +98,7 @@ $countOrders=count($orders);$countApprovals=count($approvals);$countAddresses=co
 function profileDate(?string $date):string{return $date?date('d/m/Y',strtotime($date)):'—';}
 ?>
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Meu perfil · Alvorada</title><link rel="stylesheet" href="/assets/css/style.css?v=50"></head>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Meu perfil · Alvorada</title><link rel="stylesheet" href="/assets/css/style.css?v=63"></head>
 <body class="profile-body">
 <div class="profile-app">
     <aside class="profile-sidebar">
@@ -167,5 +167,5 @@ const sectionForHash={perfil:'perfil',pedidos:'pedidos',aprovacoes:'aprovacoes',
 function setProfileActive(){const current=(location.hash||'#perfil').slice(1);const selected=sectionForHash[current]||'perfil';profileNav.forEach(link=>link.classList.toggle('is-active',link.hash==='#'+selected));}
 window.addEventListener('hashchange',setProfileActive);setProfileActive();
 </script>
-<?php require __DIR__.'/../includes/site-footer.php'; ?>
+<?php $showFooterFavorites = true; ?><?php require __DIR__.'/../includes/site-footer.php'; ?>
 </body></html>

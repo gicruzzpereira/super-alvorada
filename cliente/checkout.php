@@ -125,7 +125,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Checkout e pagamento · Alvorada</title>
-    <link rel="stylesheet" href="/assets/css/style.css?v=50">
+    <link rel="stylesheet" href="/assets/css/style.css?v=63">
 </head>
 <body>
 <main class="container checkout-page">
@@ -212,7 +212,7 @@ const money=value=>Number(value).toLocaleString('pt-BR',{style:'currency',curren
 const checkoutLines=document.querySelector('[data-checkout-items]');
 let checkoutSubtotal=0;
 checkoutCart=checkoutCart.filter(item=>item&&(checkoutCatalog.has(Number(item.id))||item.encarte===true)&&Number(item.qty)>0);
-if(customerStateCsrf){let favorites=[],location=null;try{favorites=JSON.parse(localStorage.getItem('alvorada-favorites')||'[]');location=JSON.parse(localStorage.getItem('alvorada-delivery-location')||'null')}catch{}fetch('/api/cliente_estado.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':customerStateCsrf},body:JSON.stringify({cart:checkoutCart,favorites,location})}).catch(()=>{});}
+if(customerStateCsrf){let location=null;try{location=JSON.parse(localStorage.getItem('alvorada-delivery-location')||'null')}catch{}fetch('/api/cliente_estado.php',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-Token':customerStateCsrf},body:JSON.stringify({cart:checkoutCart,location})}).catch(()=>{});}
 checkoutCart.forEach(item=>{
     const product=checkoutCatalog.get(Number(item.id))||{nome:item.name,tipo_medida:item.unit||'UN',preco_unitario:item.price};
     const lineTotal=Number(product.preco_unitario)*Number(item.qty);
@@ -261,6 +261,6 @@ checkoutForm?.addEventListener('submit',event=>{
     if(cartField)cartField.value=JSON.stringify(checkoutCart);
 });
 </script>
-<?php require __DIR__.'/../includes/site-footer.php'; ?>
+<?php $showFooterFavorites = true; ?><?php require __DIR__.'/../includes/site-footer.php'; ?>
 </body>
 </html>

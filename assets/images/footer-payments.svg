@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="pix" viewBox="0 0 72 38">
+    <path fill="#299d90" d="M13 7a5 5 0 0 1 7 0l4 4h-2l-6 6-6-6H9zm-6 6h3l5 5a2 2 0 0 0 3 0l5-5h3l2 2a5 5 0 0 1 0 7l-2 2h-3l-5-5a2 2 0 0 0-3 0l-5 5H7l-2-2a5 5 0 0 1 0-7zm2 13h2l5-5 6 5h2l-4 4a5 5 0 0 1-7 0z"/>
+    <text x="33" y="26" fill="#314746" font-family="Arial,sans-serif" font-size="23" font-weight="600">pix</text>
+  </symbol>
+  <symbol id="visa" viewBox="0 0 72 38">
+    <text x="36" y="27" text-anchor="middle" fill="#153678" font-family="Arial,sans-serif" font-size="25" font-weight="900" font-style="italic" letter-spacing="-1">VISA</text>
+  </symbol>
+  <symbol id="mastercard" viewBox="0 0 72 38">
+    <circle cx="29" cy="19" r="13" fill="#e21c30"/>
+    <circle cx="43" cy="19" r="13" fill="#f5a323"/>
+    <path d="M36 8a13 13 0 0 1 0 22 13 13 0 0 1 0-22" fill="#ff671f"/>
+  </symbol>
+  <symbol id="elo" viewBox="0 0 72 38">
+    <rect x="13" y="4" width="46" height="30" rx="15" fill="#1e1e1e"/>
+    <text x="19" y="26" fill="#fff" font-family="Arial,sans-serif" font-size="22" font-weight="700">el</text>
+    <g fill="none" stroke-width="3.5">
+      <path d="M40 16a6 6 0 0 1 10 1" stroke="#ffcb05"/>
+      <path d="M51 19a6 6 0 0 1-6 6" stroke="#e92742"/>
+      <path d="M43 25a6 6 0 0 1-4-7" stroke="#00a5df"/>
+    </g>
+  </symbol>
+  <symbol id="boleto" viewBox="0 0 72 38">
+    <g stroke="#232323">
+      <path d="M16 6v16m5-16v16m5-16v16m6-16v16m5-16v16m6-16v16m5-16v16m7-16v16"/>
+      <path d="M19 6v16m10-16v16m10-16v16m12-16v16" stroke-width="2.5"/>
+    </g>
+    <text x="36" y="33" text-anchor="middle" fill="#232323" font-family="Arial,sans-serif" font-size="9" font-weight="700">BOLETO</text>
+  </symbol>
+  <symbol id="entrega" viewBox="0 0 72 38">
+    <g fill="none" stroke="#60371f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m36 4 11 5v11l-11 5-11-5V9zm-11 5 11 5 11-5m-11 5v11M31 7l11 5v4"/>
+    </g>
+    <text x="36" y="35" text-anchor="middle" fill="#60371f" font-family="Arial,sans-serif" font-size="9" font-weight="700">NA ENTREGA</text>
+  </symbol>
+</svg>

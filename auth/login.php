@@ -2,7 +2,7 @@
 require_once __DIR__.'/../config/conexao.php';
 $erro='';
 $returnTarget=(string)($_POST['return_to']??$_GET['voltar']??'');
-$returnTo=in_array($returnTarget,['checkout','cupons'],true)?$returnTarget:'';
+$returnTo=in_array($returnTarget,['checkout','cupons','pedidos'],true)?$returnTarget:'';
 if($_SERVER['REQUEST_METHOD']==='POST'){
     validarCsrf();
     $q=db()->prepare('SELECT id_usuario,nome,email,senha,perfil FROM usuarios WHERE email=?');
@@ -14,6 +14,10 @@ if($_SERVER['REQUEST_METHOD']==='POST'){
         $_SESSION['usuario']=$u;
         if($returnTo==='checkout'&&$u['perfil']==='cliente'){
             header('Location: /cliente/checkout.php');
+            exit;
+        }
+        if($returnTo==='pedidos'&&$u['perfil']==='cliente'){
+            header('Location: /cliente/pedidos.php');
             exit;
         }
         if($returnTo==='cupons'&&$u['perfil']==='cliente'){

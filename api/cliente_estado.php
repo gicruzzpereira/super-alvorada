@@ -27,16 +27,11 @@ $csrf=(string)($_SERVER['HTTP_X_CSRF_TOKEN']??'');
 if($csrf===''||!hash_equals(csrf(),$csrf))$respond(['ok'=>false,'message'=>'Sessão expirada. Atualize a página.'],400);
 $payload=json_decode((string)file_get_contents('php://input'),true);
 if(!is_array($payload))$respond(['ok'=>false,'message'=>'Dados inválidos.'],400);
-if($isCustomer){$query=$pdo->prepare('SELECT carrinho_json,favoritos_json,localizacao_json FROM cliente_estado_site WHERE id_usuario=?');$query->execute([$userId]);}
-else{$query=$pdo->prepare('SELECT carrinho_json,favoritos_json,localizacao_json FROM visitante_estado_site WHERE session_token=? AND expira_em>NOW()');$query->execute([$guestToken]);}
-$current=$query->fetch()?:[];
-$cart=$decode($current['carrinho_json']??null,[]);
-$favorites=$decode($current['favoritos_json']??null,[]);
-$location=$decode($current['localizacao_json']??null,null);
+$cart=[];$favorites=[];$location=null;
 
 if(array_key_exists('cart',$payload)){
     if(!is_array($payload['cart'])||count($payload['cart'])>250)$respond(['ok'=>false,'message'=>'Carrinho inválido.'],400);
-    $cart=[];$productQuery=$pdo->prepare('SELECT id_produto FROM produtos WHERE id_produto=? AND ativo=1');
+    $cart=[];$productQuery=$pdo->prepare('SELECT id_produto FROM produtos WHERE id_produto=? AND ativo=1 AND estoque_qtd>0');
     $offerQuery=$pdo->prepare('SELECT nome,preco,tipo_medida FROM itens_encarte_site WHERE id_item_encarte=? AND ativo=1');
     foreach($payload['cart'] as $item){
         if(!is_array($item)||!isset($item['id'],$item['qty']))continue;
@@ -53,8 +48,16 @@ if(array_key_exists('cart',$payload)){
 }
 if(array_key_exists('favorites',$payload)){
     if(!is_array($payload['favorites'])||count($payload['favorites'])>500)$respond(['ok'=>false,'message'=>'Lista de favoritos inválida.'],400);
-    $favorites=[];$favoriteQuery=$pdo->prepare('SELECT id_produto FROM produtos WHERE id_produto=? AND ativo=1');
-    foreach($payload['favorites'] as $value){$id=filter_var($value,FILTER_VALIDATE_INT);if($id===false||$id<1)continue;$favoriteQuery->execute([$id]);if($favoriteQuery->fetchColumn())$favorites[$id]=$id;}
+    $favorites=[];
+    $favoriteQuery=$pdo->prepare('SELECT id_produto FROM produtos WHERE id_produto=? AND ativo=1');
+    $favoriteOfferQuery=$pdo->prepare('SELECT id_item_encarte FROM itens_encarte_site WHERE id_item_encarte=? AND ativo=1');
+    foreach($payload['favorites'] as $value){
+        $id=filter_var($value,FILTER_VALIDATE_INT);
+        if($id===false||$id===0||($id<0&&$id>=-900))continue;
+        $query=$id>0?$favoriteQuery:$favoriteOfferQuery;
+        $query->execute([$id>0?$id:-($id+900)]);
+        if($query->fetchColumn())$favorites[$id]=$id;
+    }
     $favorites=array_values($favorites);
 }
 if(array_key_exists('location',$payload)){
@@ -66,6 +69,18 @@ if(array_key_exists('location',$payload)){
         $location=['cidade'=>$city,'cep'=>$cep,'uf'=>substr((string)($candidate['uf']??''),0,2)];
     }else $respond(['ok'=>false,'message'=>'Localização inválida.'],400);
 }
-if($isCustomer){$save=$pdo->prepare('INSERT INTO cliente_estado_site(id_usuario,carrinho_json,favoritos_json,localizacao_json) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE carrinho_json=VALUES(carrinho_json),favoritos_json=VALUES(favoritos_json),localizacao_json=VALUES(localizacao_json)');$save->execute([$userId,json_encode($cart,JSON_UNESCAPED_UNICODE),json_encode($favorites),json_encode($location,JSON_UNESCAPED_UNICODE)]);}
-else{$save=$pdo->prepare('INSERT INTO visitante_estado_site(session_token,carrinho_json,favoritos_json,localizacao_json,expira_em) VALUES(?,?,?,?,DATE_ADD(NOW(),INTERVAL 30 DAY)) ON DUPLICATE KEY UPDATE carrinho_json=VALUES(carrinho_json),favoritos_json=VALUES(favoritos_json),localizacao_json=VALUES(localizacao_json),expira_em=VALUES(expira_em)');$save->execute([$guestToken,json_encode($cart,JSON_UNESCAPED_UNICODE),json_encode($favorites),json_encode($location,JSON_UNESCAPED_UNICODE)]);}
+$updates=[];
+foreach(['cart'=>'carrinho_json','favorites'=>'favoritos_json','location'=>'localizacao_json'] as $key=>$column){
+    if(array_key_exists($key,$payload))$updates[]="$column=VALUES($column)";
+}
+if(!$updates)$respond(['ok'=>true]);
+$values=[json_encode($cart,JSON_UNESCAPED_UNICODE),json_encode($favorites),json_encode($location,JSON_UNESCAPED_UNICODE)];
+if($isCustomer){
+    $save=$pdo->prepare('INSERT INTO cliente_estado_site(id_usuario,carrinho_json,favoritos_json,localizacao_json) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE '.implode(',',$updates));
+    $save->execute([$userId,...$values]);
+}else{
+    $updates[]='expira_em=VALUES(expira_em)';
+    $save=$pdo->prepare('INSERT INTO visitante_estado_site(session_token,carrinho_json,favoritos_json,localizacao_json,expira_em) VALUES(?,?,?,?,DATE_ADD(NOW(),INTERVAL 30 DAY)) ON DUPLICATE KEY UPDATE '.implode(',',$updates));
+    $save->execute([$guestToken,...$values]);
+}
 $respond(['ok'=>true]);
