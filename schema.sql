@@ -579,3 +579,230 @@ WHERE c.slug = 'peixaria'
       WHERE existente.id_categoria = c.id_categoria AND existente.nome = p.nome
   );
 
+
+-- Adiciona frios e laticínios com fotos das embalagens verificadas.
+INSERT INTO produtos (id_categoria, nome, descricao, tipo_medida, preco_unitario, estoque_qtd, imagem_url, destaque)
+SELECT c.id_categoria, p.nome, p.descricao, p.unidade, p.preco, 24,
+       CONCAT('/assets/images/produto-frios-', p.foto, '.jpg'), 0
+FROM categorias c
+CROSS JOIN (
+    SELECT 'Queijo Mussarela Fatiado Sadia (200 g)' AS nome, 'Queijo mussarela fatiado da linha Soltíssimo. Pacote de 200 g.' AS descricao, 'UN' AS unidade, 12.99 AS preco, 'mussarela-sadia' AS foto UNION ALL
+    SELECT 'Presunto Cozido sem Capa de Gordura Seara (kg)', 'Presunto cozido sem capa de gordura, vendido por quilo.', 'KG', 44.90, 'presunto-seara' UNION ALL
+    SELECT 'Peito de Peru Defumado Fatiado Sadia (200 g)', 'Peito de peru cozido e defumado, fatiado. Pacote de 200 g.', 'UN', 16.99, 'peru-sadia' UNION ALL
+    SELECT 'Mortadela Defumada Ouro Perdigão (200 g)', 'Mortadela Ouro defumada e fatiada. Embalagem de 200 g.', 'UN', 8.99, 'mortadela-perdigao' UNION ALL
+    SELECT 'Salame Tipo Italiano Fatiado Ceratti (100 g)', 'Salame tipo italiano defumado, fatiado. Pacote de 100 g.', 'UN', 15.99, 'salame-ceratti' UNION ALL
+    SELECT 'Queijo Minas Frescal Tirolez (500 g)', 'Queijo Minas frescal. Peça de aproximadamente 500 g.', 'UN', 25.99, 'minas-tirolez' UNION ALL
+    SELECT 'Queijo Parmesão Ralado Vigor (50 g)', 'Queijo Parmesão Ralado Vigor. Embalagem de 50 g.', 'UN', 5.49, 'parmesao-vigor' UNION ALL
+    SELECT 'Queijo Cheddar Fatiado Polenghi (144 g)', 'Queijo Cheddar Fatiado Polenghi. Embalagem de 144 g.', 'UN', 12.49, 'cheddar-polenghi' UNION ALL
+    SELECT 'Cream Cheese Tradicional Philadelphia (150 g)', 'Cream cheese tradicional. Pote de 150 g.', 'UN', 10.99, 'philadelphia' UNION ALL
+    SELECT 'Leite Longa Vida Integral Italac (1 L)', 'Leite Longa Vida Integral Italac. Embalagem de 1 L.', 'UN', 5.49, 'italac-integral' UNION ALL
+    SELECT 'Leite Longa Vida Desnatado Piracanjuba (1 L)', 'Leite Longa Vida Desnatado Piracanjuba. Embalagem de 1 L.', 'UN', 5.69, 'piracanjuba-desnatado' UNION ALL
+    SELECT 'Leite Integral Zero Lactose Piracanjuba (1 L)', 'Leite Integral Zero Lactose Piracanjuba. Embalagem de 1 L.', 'UN', 6.99, 'piracanjuba-zero' UNION ALL
+    SELECT 'Requeijão Cremoso Tradicional Vigor (200 g)', 'Requeijão Cremoso Tradicional Vigor. Embalagem de 200 g.', 'UN', 9.49, 'requeijao-vigor' UNION ALL
+    SELECT 'Requeijão Cremoso Light Catupiry (200 g)', 'Requeijão Cremoso Light Catupiry. Embalagem de 200 g.', 'UN', 12.99, 'catupiry-light' UNION ALL
+    SELECT 'Manteiga com Sal Aviação (200 g)', 'Manteiga com sal. Pote de 200 g.', 'UN', 14.99, 'aviacao-sal' UNION ALL
+    SELECT 'Margarina Cremosa com Sal Qualy (500 g)', 'Margarina Cremosa com Sal Qualy. Embalagem de 500 g.', 'UN', 8.99, 'qualy-sal' UNION ALL
+    SELECT 'Creme de Leite Tradicional Nestlé (200 g)', 'Creme de leite original. Caixinha de 200 g.', 'UN', 4.69, 'creme-nestle' UNION ALL
+    SELECT 'Leite Condensado Integral Moça Nestlé (Lata 395 g)', 'Leite condensado integral. Lata de 395 g.', 'UN', 8.49, 'moca-integral' UNION ALL
+    SELECT 'Iogurte Grego Tradicional Batavo (100 g)', 'Iogurte Grego Tradicional Batavo. Embalagem de 100 g.', 'UN', 3.99, 'grego-batavo' UNION ALL
+    SELECT 'Iogurte Natural Integral Nestlé (170 g)', 'Iogurte Natural Integral Nestlé. Embalagem de 170 g.', 'UN', 4.49, 'natural-nestle' UNION ALL
+    SELECT 'Iogurte Líquido Morango Danone (900 g)', 'Iogurte Líquido Morango Danone. Embalagem de 900 g.', 'UN', 10.99, 'danone-morango' UNION ALL
+    SELECT 'Bebida Láctea Fermentada Yakult (6 frascos 80 g)', 'Leite fermentado Yakult. Pacote com seis frascos de 80 g.', 'UN', 12.99, 'yakult-6' UNION ALL
+    SELECT 'Petit Suisse Morango Danoninho (8 unidades 320 g)', 'Petit suisse de morango. Bandeja com oito unidades, 320 g no total.', 'UN', 9.99, 'danoninho-8' UNION ALL
+    SELECT 'Sobremesa Láctea Chocolate Chandelle Nestlé (2 unidades)', 'Sobremesa láctea sabor chocolate. Bandeja com duas unidades, 180 g no total.', 'UN', 5.99, 'chandelle-chocolate'
+) p
+WHERE c.slug = 'frios-laticinios'
+  AND NOT EXISTS (
+      SELECT 1 FROM produtos existente
+      WHERE existente.id_categoria = c.id_categoria AND existente.nome = p.nome
+  );
+
+
+-- Amplia Frios e Laticínios com fotos e apresentações verificadas.
+INSERT INTO produtos (id_categoria, nome, descricao, tipo_medida, preco_unitario, estoque_qtd, imagem_url, destaque)
+SELECT c.id_categoria, p.nome, p.descricao, p.unidade, p.preco, 24,
+       CONCAT('/assets/images/produto-frios-', p.foto, '.jpg'), 0
+FROM categorias c
+CROSS JOIN (
+    SELECT 'Queijo Brie Fracionado Président (125 g)' AS nome, 'Queijo Petit Brie. Peça de 125 g.' AS descricao, 'UN' AS unidade, 22.90 AS preco, 'brie-president' AS foto UNION ALL
+    SELECT 'Queijo Gorgonzola Fracionado Tirolez (por kg)', 'Queijo gorgonzola fracionado, vendido por quilo.', 'KG', 99.90, 'gorgonzola-tirolez' UNION ALL
+    SELECT 'Queijo Provolone Fracionado Quatá (200 g)', 'Queijo provolone em pedaço. Embalagem de 200 g.', 'UN', 13.49, 'provolone-quata' UNION ALL
+    SELECT 'Queijo Cottage Tradicional Verde Campo (200 g)', 'Queijo cottage tradicional. Pote de 200 g.', 'UN', 13.90, 'cottage-verde-campo' UNION ALL
+    SELECT 'Ricota Fresca Tirolez (450 g)', 'Ricota fresca Tirolez. Peça de 450 g.', 'UN', 12.90, 'ricota-tirolez' UNION ALL
+    SELECT 'Mortadela Bologna Fatiada Ceratti (150 g)', 'Mortadela Bologna tradicional em fatias. Embalagem de 150 g.', 'UN', 12.90, 'bologna-ceratti' UNION ALL
+    SELECT 'Copa Lombo Fatiada Sadia (100 g)', 'Copa lombo suína fatiada. Pacote de 100 g.', 'UN', 15.90, 'copa-sadia' UNION ALL
+    SELECT 'Salsicha Hot Dog Tradicional Perdigão (500 g)', 'Salsichas Hot Dog Perdigão. Pacote de 500 g.', 'UN', 9.90, 'salsicha-perdigao' UNION ALL
+    SELECT 'Linguiça Calabresa Defumada Seara (400 g)', 'Linguiça tipo calabresa defumada. Pacote de 400 g.', 'UN', 14.90, 'calabresa-seara' UNION ALL
+    SELECT 'Bacon Defumado em Cubos Sadia (140 g)', 'Bacon defumado cortado em cubos. Pacote de 140 g.', 'UN', 16.90, 'bacon-sadia' UNION ALL
+    SELECT 'Bebida Láctea Chocolate Toddynho (200 ml)', 'Bebida láctea sabor chocolate. Caixinha de 200 ml.', 'UN', 3.49, 'toddynho' UNION ALL
+    SELECT 'Bebida Láctea Chocolate Nescau Prontinho (200 ml)', 'Bebida láctea sabor chocolate pronta para beber. Caixinha de 200 ml.', 'UN', 3.79, 'nescau-prontinho' UNION ALL
+    SELECT 'Leite em Pó Integral Ninho Forti+ (380 g)', 'Leite em pó integral Ninho Forti+. Lata de 380 g.', 'UN', 21.90, 'ninho-forti' UNION ALL
+    SELECT 'Leite em Pó Instantâneo Itambé (400 g)', 'Leite em pó integral instantâneo. Pacote de 400 g.', 'UN', 19.90, 'leite-po-itambe' UNION ALL
+    SELECT 'Bebida Láctea Fermentada Vigor Todo Dia Morango (6 unidades, 540 g)', 'Bebida láctea fermentada sabor morango. Bandeja com seis unidades, 540 g no total.', 'UN', 8.99, 'iogurte-vigor' UNION ALL
+    SELECT 'Iogurte Grego Frutas Vermelhas Danone (90 g)', 'Iogurte grego com calda de frutas vermelhas. Pote de 90 g.', 'UN', 3.79, 'grego-danone' UNION ALL
+    SELECT 'Coalhada Vigor Viv (150 g)', 'Coalhada Vigor Viv de consistência firme. Pote de 150 g.', 'UN', 3.49, 'coalhada-vigor' UNION ALL
+    SELECT 'Chantilly Spray Président (250 g)', 'Chantilly Président em spray. Frasco de 250 g.', 'UN', 24.90, 'chantilly-president' UNION ALL
+    SELECT 'Margarina Cremosa com Sal Claybom (500 g)', 'Margarina cremosa com sal. Pote de 500 g.', 'UN', 8.49, 'claybon'
+) p
+WHERE c.slug = 'frios-laticinios'
+  AND NOT EXISTS (
+      SELECT 1 FROM produtos existente
+      WHERE existente.id_categoria = c.id_categoria AND existente.nome = p.nome
+  );
+
+
+-- Adiciona produtos de marca à Mercearia e Grãos sem duplicar registros.
+INSERT INTO produtos (id_categoria, nome, descricao, tipo_medida, preco_unitario, estoque_qtd, imagem_url, destaque)
+SELECT c.id_categoria, p.nome, p.descricao, 'UN', p.preco, 24,
+       CONCAT('/assets/images/produto-mercearia-', p.foto, '.jpg'), 0
+FROM categorias c
+CROSS JOIN (
+    SELECT 'Arroz Agulhinha Tipo 1 Camil (5 kg)' AS nome, 'Arroz branco de grão longo fino, tipo 1. Pacote de 5 kg.' AS descricao, 25.90 AS preco, 'arroz-camil' AS foto UNION ALL
+    SELECT 'Arroz Integral Parboilizado Tio João (1 kg)', 'Arroz integral parboilizado, tipo 1. Pacote de 1 kg.', 8.90, 'arroz-integral-tio-joao' UNION ALL
+    SELECT 'Feijão Carioca Tipo 1 Camil (1 kg)', 'Feijão carioca tipo 1. Pacote de 1 kg.', 8.49, 'feijao-carioca-camil' UNION ALL
+    SELECT 'Feijão Preto Tipo 1 Kicaldo (1 kg)', 'Feijão preto tipo 1. Pacote de 1 kg.', 7.99, 'feijao-preto-kicaldo' UNION ALL
+    SELECT 'Lentilha Yoki (500 g)', 'Lentilha seca. Pacote de 500 g.', 11.49, 'lentilha-yoki' UNION ALL
+    SELECT 'Grão-de-Bico Yoki (500 g)', 'Grão-de-bico seco. Pacote de 500 g.', 12.99, 'grao-bico-yoki' UNION ALL
+    SELECT 'Farofa de Mandioca Temperada Tradicional Yoki (500 g)', 'Farofa de mandioca temperada pronta. Pacote de 500 g.', 8.49, 'farinha-mandioca-yoki' UNION ALL
+    SELECT 'Farinha de Trigo Tradicional Dona Benta (1 kg)', 'Farinha de trigo tradicional. Pacote de 1 kg.', 6.49, 'farinha-trigo-dona-benta' UNION ALL
+    SELECT 'Fubá Mimoso Yoki (500 g)', 'Fubá mimoso de milho. Pacote de 500 g.', 4.29, 'fuba-yoki' UNION ALL
+    SELECT 'Aveia em Flocos Finos Quaker (165 g)', 'Aveia integral em flocos finos. Caixa de 165 g.', 5.49, 'aveia-quaker' UNION ALL
+    SELECT 'Macarrão Espaguete Nº 8 Barilla (500 g)', 'Espaguete Barilla nº 8. Pacote de 500 g.', 9.99, 'espaguete-barilla' UNION ALL
+    SELECT 'Macarrão Parafuso Renata com Ovos (500 g)', 'Macarrão parafuso com ovos. Pacote de 500 g.', 6.29, 'parafuso-renata' UNION ALL
+    SELECT 'Macarrão Instantâneo Nissin Miojo Galinha Caipira (85 g)', 'Macarrão instantâneo sabor galinha caipira. Pacote de 85 g.', 2.49, 'miojo-nissin' UNION ALL
+    SELECT 'Molho de Tomate Tradicional Heinz (300 g)', 'Molho de tomate tradicional. Sachê de 300 g.', 4.79, 'molho-heinz' UNION ALL
+    SELECT 'Extrato de Tomate Elefante (340 g)', 'Extrato de tomate Elefante. Lata de 340 g.', 8.49, 'extrato-elefante' UNION ALL
+    SELECT 'Maionese Tradicional Hellmann''s (500 g)', 'Maionese tradicional. Pote de 500 g.', 12.90, 'maionese-hellmanns' UNION ALL
+    SELECT 'Ketchup Tradicional Heinz (397 g)', 'Ketchup Heinz tradicional. Frasco de 397 g.', 13.90, 'ketchup-heinz' UNION ALL
+    SELECT 'Óleo de Soja Liza (900 ml)', 'Óleo de soja Liza. Garrafa de 900 ml.', 7.49, 'oleo-liza' UNION ALL
+    SELECT 'Azeite de Oliva Extra Virgem Gallo (500 ml)', 'Azeite de oliva extravirgem Gallo. Garrafa de 500 ml.', 37.90, 'azeite-gallo' UNION ALL
+    SELECT 'Sal Refinado Cisne (1 kg)', 'Sal refinado Cisne. Pacote de 1 kg.', 3.49, 'sal-cisne' UNION ALL
+    SELECT 'Açúcar Refinado União (1 kg)', 'Açúcar refinado União. Pacote de 1 kg.', 5.19, 'acucar-uniao' UNION ALL
+    SELECT 'Café Torrado e Moído Pilão Tradicional (500 g)', 'Café tradicional torrado e moído. Pacote de 500 g.', 29.90, 'cafe-pilao' UNION ALL
+    SELECT 'Café Solúvel Nescafé Tradição (100 g)', 'Café solúvel granulado Nescafé Tradição. Vidro de 100 g.', 18.90, 'nescafe-tradicao' UNION ALL
+    SELECT 'Milho Verde em Conserva Quero (170 g)', 'Milho verde em conserva. Lata de 170 g.', 4.39, 'milho-quero' UNION ALL
+    SELECT 'Ervilha em Conserva Bonduelle (170 g)', 'Ervilhas em conserva. Lata de 170 g.', 5.49, 'ervilha-bonduelle' UNION ALL
+    SELECT 'Achocolatado em Pó Nescau 2.0 (370 g)', 'Achocolatado em pó Nescau 2.0. Lata de 370 g.', 9.99, 'nescau-2' UNION ALL
+    SELECT 'Cereal Matinal Sucrilhos Kellogg''s Original (240 g)', 'Cereal matinal de milho Sucrilhos Original. Caixa de 240 g.', 12.90, 'sucrilhos-original' UNION ALL
+    SELECT 'Biscoito Recheado Oreo Original (90 g)', 'Biscoito de chocolate com recheio sabor baunilha. Pacote de 90 g.', 4.99, 'oreo-original' UNION ALL
+    SELECT 'Biscoito Cream Cracker Tradicional Bauducco (200 g)', 'Biscoito salgado Cream Cracker tradicional. Pacote de 200 g.', 5.49, 'cream-cracker-bauducco' UNION ALL
+    SELECT 'Goiabada Cascão Predilecta (350 g)', 'Goiabada cascão Predilecta. Embalagem de 350 g.', 8.90, 'goiabada-predilecta'
+) p
+WHERE c.slug = 'mercearia-graos'
+  AND NOT EXISTS (
+      SELECT 1 FROM produtos existente
+      WHERE existente.id_categoria = c.id_categoria AND existente.nome = p.nome
+  );
+
+
+-- Amplia Mercearia e Grãos com apresentações verificadas e fotos das embalagens.
+INSERT INTO produtos (id_categoria, nome, descricao, tipo_medida, preco_unitario, estoque_qtd, imagem_url, destaque)
+SELECT c.id_categoria, p.nome, p.descricao, 'UN', p.preco, 24,
+       CONCAT('/assets/images/produto-mercearia-', p.foto, '.jpg'), 0
+FROM categorias c
+CROSS JOIN (
+    SELECT 'Arroz Parboilizado Tipo 1 Urbano (5 kg)' AS nome, 'Arroz parboilizado tipo 1, de grão longo fino. Pacote de 5 kg.' AS descricao, 25.90 AS preco, 'arroz-parboilizado-urbano' AS foto UNION ALL
+    SELECT 'Feijão Branco Kicaldo (500 g)', 'Feijão branco seco. Pacote de 500 g.', 8.99, 'feijao-branco-kicaldo' UNION ALL
+    SELECT 'Milho para Pipoca Premium Yoki (500 g)', 'Milho para pipoca da linha Premium. Pacote de 500 g.', 6.49, 'pipoca-yoki-premium' UNION ALL
+    SELECT 'Farinha de Rosca Yoki (500 g)', 'Farinha de rosca Yoki. Pacote de 500 g.', 6.99, 'farinha-rosca-yoki' UNION ALL
+    SELECT 'Amido de Milho Maizena (200 g)', 'Amido de milho Maizena. Caixa de 200 g.', 6.49, 'maizena-200g' UNION ALL
+    SELECT 'Macarrão Penne Renata Grano Duro (500 g)', 'Penne de sêmola de trigo grano duro. Pacote de 500 g.', 8.99, 'penne-renata-grano-duro' UNION ALL
+    SELECT 'Massa para Lasanha Pré-Cozida com Ovos Renata (200 g)', 'Massa pré-cozida com ovos para lasanha. Embalagem de 200 g.', 7.49, 'lasanha-renata' UNION ALL
+    SELECT 'Molho Shoyu Tradicional Sakura (500 ml)', 'Molho de soja tradicional. Frasco de 500 ml.', 10.90, 'shoyu-sakura-500ml' UNION ALL
+    SELECT 'Vinagre de Álcool Colorido Castelo (750 ml)', 'Vinagre de álcool colorido. Frasco de 750 ml.', 4.49, 'vinagre-castelo-colorido' UNION ALL
+    SELECT 'Mostarda Amarela Tradicional Heinz (255 g)', 'Mostarda amarela Heinz. Frasco de 255 g.', 12.90, 'mostarda-heinz-255g' UNION ALL
+    SELECT 'Molho Inglês Tradicional Lea & Perrins (150 ml)', 'Molho inglês tipo Worcestershire. Frasco de 150 ml.', 19.90, 'lea-perrins-150ml' UNION ALL
+    SELECT 'Caldo de Galinha Knorr (6 cubos)', 'Caldo de galinha em tabletes. Caixa com seis cubos.', 3.49, 'caldo-knorr-galinha' UNION ALL
+    SELECT 'Tempero Sazón Carnes (12 sachês)', 'Tempero para carnes. Pacote com 12 sachês de 5 g.', 5.49, 'sazon-carnes' UNION ALL
+    SELECT 'Pimenta-do-Reino Moída Kitano (50 g)', 'Pimenta-do-reino preta moída. Pacote de 50 g.', 9.90, 'pimenta-reino-kitano' UNION ALL
+    SELECT 'Orégano Desidratado Kitano (15 g)', 'Orégano desidratado. Pacote de 15 g.', 4.99, 'oregano-kitano' UNION ALL
+    SELECT 'Azeitona Verde com Caroço Vale Fértil (200 g)', 'Azeitonas verdes inteiras com caroço. Vidro de 200 g.', 12.90, 'azeitona-vale-fertil' UNION ALL
+    SELECT 'Palmito Pupunha Picado Natupalm (300 g)', 'Palmito de pupunha picado em conserva. Vidro de 300 g.', 18.90, 'palmito-natupalm' UNION ALL
+    SELECT 'Seleta de Legumes em Conserva Quero (170 g)', 'Seleta de legumes em conserva. Lata de 170 g.', 4.39, 'seleta-quero' UNION ALL
+    SELECT 'Café Torrado e Moído Melitta Tradicional (500 g)', 'Café tradicional torrado e moído. Pacote de 500 g.', 28.90, 'cafe-melitta' UNION ALL
+    SELECT 'Filtro de Papel Melitta Nº 103 (30 unidades)', 'Filtros de papel nº 103. Caixa com 30 unidades.', 5.90, 'filtro-melitta-103' UNION ALL
+    SELECT 'Açúcar Cristal União (5 kg)', 'Açúcar cristal União. Pacote de 5 kg.', 19.90, 'acucar-cristal-uniao' UNION ALL
+    SELECT 'Adoçante Líquido Zero-Cal Sucralose (100 ml)', 'Adoçante líquido à base de sucralose. Frasco de 100 ml.', 14.90, 'zero-cal-sucralose' UNION ALL
+    SELECT 'Geleia de Morango Queensberry Clássica (320 g)', 'Geleia de morango da linha Classic. Vidro de 320 g.', 17.90, 'geleia-queensberry' UNION ALL
+    SELECT 'Creme de Avelã Nutella (140 g)', 'Creme de avelã com cacau. Pote de 140 g.', 13.90, 'nutella-140g'
+) p
+WHERE c.slug = 'mercearia-graos'
+  AND NOT EXISTS (
+      SELECT 1 FROM produtos existente
+      WHERE existente.id_categoria = c.id_categoria AND existente.nome = p.nome
+  );
+
+
+-- Adiciona produtos de Higiene e Perfumaria com fotos das embalagens.
+INSERT INTO produtos (id_categoria, nome, descricao, tipo_medida, preco_unitario, estoque_qtd, imagem_url, destaque)
+SELECT c.id_categoria, p.nome, p.descricao, 'UN', p.preco, 24,
+       CONCAT('/assets/images/produto-higiene-', p.foto, '.jpg'), 0
+FROM categorias c
+CROSS JOIN (
+    SELECT 'Shampoo Hidratação Intensa Pantene (400 ml)' AS nome, 'Shampoo Pantene Pro-V para hidratação. Frasco de 400 ml.' AS descricao, 21.90 AS preco, 'pantene-hidratacao' AS foto UNION ALL
+    SELECT 'Condicionador Restauração Pantene (400 ml)', 'Condicionador Pantene Pro-V da linha Restauração. Frasco de 400 ml.', 24.90, 'pantene-restauracao' UNION ALL
+    SELECT 'Shampoo Anticaspa Clear Men Limpeza Profunda (200 ml)', 'Shampoo anticaspa Clear Men Limpeza Profunda. Frasco de 200 ml.', 17.90, 'clear-men-limpeza' UNION ALL
+    SELECT 'Creme para Pentear Seda Cachos Definidos (300 ml)', 'Creme para pentear Seda Cachos Definidos. Frasco de 300 ml.', 11.90, 'seda-cachos' UNION ALL
+    SELECT 'Máscara de Tratamento Dove Reconstrução Completa (350 g)', 'Máscara capilar Dove Reconstrução Completa. Pote de 350 g.', 24.90, 'dove-reconstrucao' UNION ALL
+    SELECT 'Sabonete em Barra Dove Original (6 unidades de 90 g)', 'Sabonete em barra Dove Original. Pacote com seis unidades de 90 g cada.', 19.90, 'dove-original-6' UNION ALL
+    SELECT 'Sabonete em Barra Lux Botanicals Buquê de Jasmim (85 g)', 'Sabonete Lux Botanicals com fragrância de jasmim. Barra de 85 g.', 2.49, 'lux-jasmim' UNION ALL
+    SELECT 'Sabonete Líquido Corporal Nivea Creme Care (250 ml)', 'Sabonete líquido para o corpo Nivea Creme Care. Frasco de 250 ml.', 13.90, 'nivea-creme-care' UNION ALL
+    SELECT 'Desodorante Antitranspirante Rexona Women Bamboo Aerossol (150 ml)', 'Antitranspirante Rexona Women Bamboo em aerossol. Frasco de 150 ml.', 15.90, 'rexona-bamboo' UNION ALL
+    SELECT 'Desodorante Roll-On Dove Original (50 ml)', 'Desodorante antitranspirante Dove Original roll-on. Frasco de 50 ml.', 13.90, 'dove-roll-on' UNION ALL
+    SELECT 'Hidratante Corporal Johnson''s Soft Lotion (200 ml)', 'Loção corporal Johnson’s Soft Lotion Hidratação Imediata. Frasco de 200 ml.', 15.90, 'johnsons-soft' UNION ALL
+    SELECT 'Óleo Corporal Paixão Tentadora (200 ml)', 'Óleo corporal Paixão Tentadora. Frasco de 200 ml.', 17.90, 'paixao-tentadora' UNION ALL
+    SELECT 'Creme Dental Colgate Luminous White Carvão Ativado (70 g)', 'Creme dental Colgate Luminous White Carvão Ativado. Bisnaga de 70 g.', 12.90, 'colgate-carvao' UNION ALL
+    SELECT 'Creme Dental Sensodyne Rápido Alívio (90 g)', 'Creme dental Sensodyne Rápido Alívio. Bisnaga de 90 g.', 22.90, 'sensodyne-rapido' UNION ALL
+    SELECT 'Aparelho de Barbear Gillette Prestobarba3 (2 unidades)', 'Aparelhos descartáveis Gillette Prestobarba3. Pacote com duas unidades.', 13.90, 'gillette-prestobarba3' UNION ALL
+    SELECT 'Espuma de Barbear Bozzano Hidratação (190 g)', 'Espuma de barbear Bozzano Hidratação. Frasco de 190 g.', 19.90, 'bozzano-hidratacao' UNION ALL
+    SELECT 'Papel Higiênico Neve Folha Dupla Neutro (12 rolos)', 'Papel higiênico Neve Toque da Seda, folha dupla neutra. Pacote com 12 rolos.', 19.90, 'neve-dupla-12' UNION ALL
+    SELECT 'Papel Higiênico Personal Vip Folha Dupla (16 rolos)', 'Papel higiênico Personal Vip, folha dupla. Pacote com 16 rolos.', 22.90, 'personal-vip-16' UNION ALL
+    SELECT 'Lenço Umedecido Huggies Supreme Care (48 unidades)', 'Lenços umedecidos Huggies Supreme Care. Pacote com 48 unidades.', 13.90, 'huggies-supreme-48' UNION ALL
+    SELECT 'Fralda Descartável Pampers Confort Sec Tamanho G (70 unidades)', 'Fraldas descartáveis Pampers Confort Sec tamanho G. Pacote com 70 unidades.', 89.90, 'pampers-confort-g' UNION ALL
+    SELECT 'Absorvente Intimus Gel Suave com Abas (8 unidades)', 'Absorventes com abas e cobertura suave. Pacote com oito unidades.', 6.49, 'intimus-gel' UNION ALL
+    SELECT 'Protetor Diário Carefree Todo Dia sem Perfume (40 unidades)', 'Protetores diários Carefree Todo Dia sem perfume. Pacote com 40 unidades.', 15.90, 'carefree-sem-perfume' UNION ALL
+    SELECT 'Hastes Flexíveis Cotonetes Johnson & Johnson (75 unidades)', 'Hastes flexíveis Cotonetes. Caixa com 75 unidades.', 5.90, 'cotonetes-75' UNION ALL
+    SELECT 'Cortador de Unhas Mundial Clássico (1 unidade)', 'Cortador de unhas Mundial da linha Classic. Uma unidade.', 8.90, 'mundial-cortador' UNION ALL
+    SELECT 'Esmalte Risqué Renda (8 ml)', 'Esmalte Risqué na cor Renda. Frasco de 8 ml.', 5.49, 'risque-renda'
+) p
+WHERE c.slug = 'higiene-perfumaria'
+  AND NOT EXISTS (
+      SELECT 1 FROM produtos existente
+      WHERE existente.id_categoria = c.id_categoria AND existente.nome = p.nome
+  );
+
+
+-- Amplia a categoria Higiene e Perfumaria com fotos das embalagens verificadas.
+-- Os medicamentos ficam em exibição, com estoque zero e sem compra online.
+INSERT INTO produtos (id_categoria, nome, descricao, tipo_medida, preco_unitario, estoque_qtd, imagem_url, destaque)
+SELECT c.id_categoria, p.nome, p.descricao, 'UN', p.preco, p.estoque,
+       CONCAT('/assets/images/produto-higiene-', p.foto, '.jpg'), 0
+FROM categorias c
+CROSS JOIN (
+    SELECT 'Shampoo Anticaspa Head & Shoulders Remoção da Oleosidade (200 ml)' AS nome, 'Shampoo anticaspa da linha Remoção da Oleosidade. Frasco de 200 ml.' AS descricao, 17.90 AS preco, 24 AS estoque, 'head-shoulders-oleosidade' AS foto UNION ALL
+    SELECT 'Shampoo Infantil Johnson''s Baby Regular (400 ml)', 'Shampoo infantil Johnson’s Baby Regular. Frasco de 400 ml.', 19.90, 24, 'johnsons-shampoo-regular' UNION ALL
+    SELECT 'Condicionador Infantil Johnson''s Baby Regular (200 ml)', 'Condicionador infantil Johnson’s Baby Regular. Frasco de 200 ml.', 15.90, 24, 'johnsons-condicionador-regular' UNION ALL
+    SELECT 'Tintura Koleston Louro Escuro 60', 'Tintura creme Wella Koleston na cor Louro Escuro, tonalidade 60. Uma caixa.', 22.90, 24, 'koleston-60' UNION ALL
+    SELECT 'Gel Fixador Bozzano Fixação Forte (300 g)', 'Gel fixador Bozzano de fixação forte. Pote de 300 g.', 9.90, 24, 'bozzano-gel-forte' UNION ALL
+    SELECT 'Gel de Limpeza Facial Neutrogena Deep Clean (150 g)', 'Gel facial de limpeza Neutrogena Deep Clean. Bisnaga de 150 g.', 29.90, 24, 'neutrogena-deep-clean' UNION ALL
+    SELECT 'Água Micelar L''Oréal Paris Solução de Limpeza 5 em 1 (200 ml)', 'Solução micelar facial 5 em 1. Frasco de 200 ml.', 25.90, 24, 'loreal-agua-micelar' UNION ALL
+    SELECT 'Hidratante Facial Nivea Soft (98 g)', 'Creme hidratante Nivea Soft. Pote de 98 g.', 24.90, 24, 'nivea-soft' UNION ALL
+    SELECT 'Protetor Labial Nivea Original Care (4,8 g)', 'Protetor labial Original Care. Bastão de 4,8 g.', 13.90, 24, 'nivea-labial-original' UNION ALL
+    SELECT 'Desodorante Antitranspirante Aerossol Nivea Pearl & Beauty (150 ml)', 'Antitranspirante Nivea Pearl & Beauty em aerossol. Frasco de 150 ml.', 15.90, 24, 'nivea-pearl-beauty' UNION ALL
+    SELECT 'Desodorante Creme Herbíssimo Tradicional (55 g)', 'Desodorante antitranspirante em creme Herbíssimo Tradicional. Pote de 55 g.', 5.90, 24, 'herbissimo-tradicional' UNION ALL
+    SELECT 'Polvilho Antisséptico Granado (100 g)', 'Polvilho Antisséptico Granado Tradicional. Frasco de 100 g.', 0.00, 0, 'granado-polvilho' UNION ALL
+    SELECT 'Sabonete Líquido Granado Glicerina Tradicional (300 ml)', 'Sabonete líquido de glicerina Granado Tradicional. Frasco de 300 ml.', 23.90, 24, 'granado-glicerina' UNION ALL
+    SELECT 'Enxaguante Bucal Colgate Plax Fresh Mint (500 ml)', 'Enxaguante bucal Colgate Plax Fresh Mint. Frasco de 500 ml.', 18.90, 24, 'colgate-plax-fresh-mint' UNION ALL
+    SELECT 'Creme Dental Oral-B 1-2-3 Menta (70 g)', 'Creme dental Oral-B 1-2-3 sabor menta. Bisnaga de 70 g.', 4.99, 24, 'oral-b-123-menta' UNION ALL
+    SELECT 'Carga para Aparelho de Barbear Gillette Mach3 (2 unidades)', 'Cartela com duas cargas para aparelho Gillette Mach3.', 29.90, 24, 'gillette-mach3-carga' UNION ALL
+    SELECT 'Loção Pós-Barba Bozzano Night Blue (100 ml)', 'Loção pós-barba Bozzano Night Blue. Frasco de 100 ml.', 19.90, 24, 'bozzano-pos-barba-azul' UNION ALL
+    SELECT 'Creme para Assaduras Bepantol Baby (30 g)', 'Creme preventivo de assaduras Bepantol Baby. Bisnaga de 30 g.', 24.90, 24, 'bepantol-baby' UNION ALL
+    SELECT 'Pomada para Assaduras Hipoglós Original (45 g)', 'Hipoglós Original. Bisnaga de 45 g.', 0.00, 0, 'hipoglos-original' UNION ALL
+    SELECT 'Papel Higiênico Sublime Folha Dupla (12 rolos)', 'Papel higiênico Sublime folha dupla. Pacote com 12 rolos.', 22.90, 24, 'sublime-tripla'
+) p
+WHERE c.slug = 'higiene-perfumaria'
+  AND NOT EXISTS (
+      SELECT 1 FROM produtos existente
+      WHERE existente.id_categoria = c.id_categoria AND existente.nome = p.nome
+  );
+

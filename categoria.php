@@ -68,7 +68,7 @@ $itemCount = count($products) + count($flyerItems);
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="customer-state-csrf" content="<?=h(csrf())?>">
 <title><?=h($meta['title'])?> | Supermercado Alvorada</title>
-<link rel="stylesheet" href="assets/css/style.css?v=70">
+<link rel="stylesheet" href="assets/css/style.css?v=73">
 </head><body class="category-page category-page-<?=h($slug)?>">
 <div class="topbar"><div class="container"><header class="header">
     <a class="brand" href="/" aria-label="Supermercado Alvorada — início"><img class="brand-logo" src="assets/images/alvorada-logo.png?v=1" alt="Supermercado Alvorada"></a>
